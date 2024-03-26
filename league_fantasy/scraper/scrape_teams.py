@@ -1,8 +1,7 @@
 import requests
 from bs4 import BeautifulSoup
 import urllib.parse
-from ..models import Team, Player
-from .score_calculator import calculate_score
+from ..models import Team, Player, PlayerSynonym
 
 user_agent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:123.0) Gecko/20100101 Firefox/123.0"
 
@@ -24,10 +23,14 @@ def get_or_create_player(team, player_id, position, tournament, season):
     player.team = team
     player.country = country
     player.position = position
+    player.active = True
   except:
     player = Player(in_game_name=title, team=team, player_id=player_id, country=country, position=position, score=0)
-
+  
   player.save()
+
+  if not PlayerSynonym.objects.filter(player=player).filter(name__iexact=title).exists():
+    PlayerSynonym(player=player, name=title).save()
 
   return player
 
@@ -56,21 +59,34 @@ def get_or_create_team(team_id, tournament):
   
   players = []
   positions = ["top", "jungle", "mid", "bot", "support"]
-  for link in soup.select("table tr a"):
+  for row in soup.select("table.footable tr"):
+    data = list(row.select("td"))
+    if not data:
+      continue
+
+    position = data[0].get_text().strip().lower()
+    if position not in positions:
+      continue
+    
+    link = data[1].select_one("a")
+    if not link:
+      continue
+
     href = link.get("href")
     if href and href.startswith("../players"):
       parts = href.split("/")
       player_id = parts[3]
       season_name = parts[4]
-      position = positions.pop(0)
       players.append(get_or_create_player(team, player_id, position, tournament, season_name))
   
   return [team, players]
 
-def get_teams_and_players(tournament):
+def get_teams_and_players_for_tournament(tournament):
+  Player.objects.filter(active=True).update(active=False)
+
   teams = []
   players = []
-  url = f"https://gol.gg/tournament/tournament-ranking/{urllib.parse.quote(tournament)}/"
+  url = f"https://gol.gg/tournament/tournament-ranking/{urllib.parse.quote(tournament.name)}/"
   print(url)
   resp = requests.get(url, headers={"user-agent": user_agent})
   soup = BeautifulSoup(resp.text, "html.parser")
@@ -79,10 +95,9 @@ def get_teams_and_players(tournament):
     if href and href.startswith("../teams"):
       parts = href.split("/")
       team_id = parts[3]
-      [team, team_players] = get_or_create_team(team_id, tournament)
+      [team, team_players] = get_or_create_team(team_id, tournament.name)
       teams.append(team)
       players += team_players
 
   return [teams, players]
-
 

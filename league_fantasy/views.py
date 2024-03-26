@@ -1,11 +1,10 @@
 from django.http import HttpResponse
-from .scraper.scrape_teams import get_teams_and_players
-from .scraper.scrape_games import update_game_data
+from .scraper.scrape_teams import get_teams_and_players_for_tournament
 
 TOURNAMENT = "LEC Spring Season 2024"
 
 def refresh_teams_and_players(request):
-    [teams, players] = get_teams_and_players(TOURNAMENT)
+    [teams, players] = get_teams_and_players_for_tournament(TOURNAMENT)
 
     lines = []
     lines.append("<h2>Teams:</h2><ul>")
@@ -21,6 +20,5 @@ def refresh_teams_and_players(request):
     return HttpResponse("\n".join(lines))
 
 def refresh_matches(request):
-    update_game_data(TOURNAMENT)
     return HttpResponse("Done")
 
