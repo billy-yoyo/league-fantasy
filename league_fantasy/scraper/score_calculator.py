@@ -1,7 +1,8 @@
-from ..models import Player, Tournament, PlayerStat, Game
+from ..models import Player, Tournament, PlayerStat, Game, UserDraft, UserDraftPlayer, UserDraftScorePoint, PlayerScorePoint
 from .stats import StatName
 import math
 from collections import defaultdict
+from datetime import datetime
 
 class ScoreComputer:
   def __init__(self, score):
@@ -124,7 +125,7 @@ def calculate_score_for_game(winner, position, stats):
 
   return score
 
-def update_player_score(player, tournaments):
+def update_player_score(player, tournaments, time):
   score = ScoreComputer(0)
   total_games = 0
   for game in Game.objects.filter(tournament__in=tournaments):
@@ -136,24 +137,37 @@ def update_player_score(player, tournaments):
     game_score = calculate_score_for_game(game.winner == player.team.team_id, player.position, stats)
     score.merge(game_score)
     total_games += 1
-  
-  with open("players", "a") as f:
-    f.write(score.summary(player.in_game_name) + "\n")
 
   player.score = score.score
   player.save()
 
+  PlayerScorePoint(player=player, score=score, time=time).save()
+
+def update_user_draft(user_draft, time):
+  score = 0
+  for player in UserDraftPlayer.objects.filter(draft=user_draft):
+    score += player.score
+  
+  user_draft.score = score
+  user_draft.save()
+
+  UserDraftScorePoint(draft=user_draft, score=score, time=time).save()
+
+def update_all_user_drafts(time):
+  for user_draft in UserDraft.objects.all():
+    update_user_draft(user_draft, time)
+
 def update_all_player_scores_for_tournament(tournament):
-  with open("players", "w") as f:
-    f.write("test")
+  time = datetime.now()
   for player in Player.objects.all():
-    update_player_score(player, [tournament])
+    update_player_score(player, [tournament], time)
+  update_all_user_drafts(time)
  
 def update_all_player_scores_for_season(season):
-  with open("players", "w") as f:
-    f.write("test")
+  time = datetime.now()
   tournaments = list(Tournament.objects.filter(season=season))
   for player in Player.objects.all():
-    update_player_score(player, tournaments)
+    update_player_score(player, tournaments, time)
+  update_all_user_drafts(time)
 
 

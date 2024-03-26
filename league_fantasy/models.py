@@ -60,6 +60,11 @@ class PlayerSynonym(models.Model):
   def __str__(self):
     return self.name
 
+class PlayerScorePoint(models.Model):
+  player = models.ForeignKey(Player, on_delete=models.CASCADE)
+  score = models.FloatField()
+  time = models.DateTimeField()
+
 class PlayerStat(models.Model):
   player = models.ForeignKey(Player, on_delete=models.CASCADE)
   game = models.ForeignKey(Game, on_delete=models.CASCADE)
@@ -71,6 +76,12 @@ class PlayerStat(models.Model):
 
 class UserDraft(models.Model):
   user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+  score = models.FloatField()
+
+class UserDraftScorePoint(models.Model):
+  draft = models.ForeignKey(UserDraft, on_delete=models.CASCADE)
+  score = models.FloatField()
+  time = models.DateTimeField()
 
 class UserDraftPlayer(models.Model):
   draft = models.ForeignKey(UserDraft, on_delete=models.CASCADE)
