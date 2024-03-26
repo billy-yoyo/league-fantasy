@@ -1,5 +1,7 @@
 from django.http import HttpResponse
+from django.shortcuts import render
 from .scraper.scrape_teams import get_teams_and_players_for_tournament
+from .models import Player
 
 TOURNAMENT = "LEC Spring Season 2024"
 
@@ -22,3 +24,8 @@ def refresh_teams_and_players(request):
 def refresh_matches(request):
     return HttpResponse("Done")
 
+
+def player_leaderboard(request):
+    players = Player.objects.filter(active=True).all()
+    positions = ("top", "jungle", "mid", "bot", "support")
+    return render(request, "player_leaderboard.html", { "players": players, "positions": positions })

@@ -1,0 +1,60 @@
+{% extends "base_authed.html" %}
+{% load static %}
+
+{% block auth_content %}
+
+<div style="display: flex; flex-direction: row;">
+    {% for position in positions %}
+        <button data-position="{{position}}" onclick="filterBy(this)">
+            <img src="{% static 'positions/'|add:position|add:'.png' %}" width="40" height="40"></img>
+        </button>
+    {% endfor %}
+</div>
+
+<table>
+    <thead>
+        <tr>
+            <th scope="col">Player</th>
+            <th scope="col">Team</th>
+            <th scope="col">Position</th>
+            <th scope="col">Score</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for player in players %}
+            <tr class="player-row" data-position="{{ player.position }}">
+                <th scope="row">{{ player.in_game_name }}</th>
+                <th>
+                    <img src="{% static player.team.icon_url %}" width="20" height="20"></img>
+                    <span>{{ player.team.full_name }}</span>
+                </th>
+                <th><img src="{% static 'positions/'|add:player.position|add:'.png' %}" width="20" height="20"></img></th>
+                <th>{{ player.score }}</th>
+            </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<script>
+    const tableState = { position: null };
+    const filterBy = (button) => {
+        const position = button.dataset.position;
+        if (tableState.position === position) {
+            document.querySelectorAll('.player-row').forEach(node => node.classList.remove("hidden"));
+            tableState.position = null;
+            button.classList.remove("selected");
+        } else {
+            document.querySelectorAll('.player-row').forEach(node => {
+                if (node.dataset.position === position) {
+                    node.classList.remove("hidden");
+                } else {
+                    node.classList.add("hidden");
+                }
+            });
+            tableState.position = position;
+            button.classList.add("selected");
+        }
+    };
+</script>
+
+{% endblock %}
