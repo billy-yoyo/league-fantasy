@@ -69,7 +69,7 @@ def draft_leaderboard(request):
 
     time_points = sorted(time_points)
     
-    labels = [time.strftime("%d:%m:%Y") for time in time_points]
+    labels = [time.strftime("%d/%m/%Y") for time in time_points]
     datasets = []
     for draft in drafts:
         data = []
@@ -198,7 +198,7 @@ def player_graph(request, player_id=None):
 
     time_points = sorted(time_points)
     
-    labels = [time.strftime("%d:%m:%Y") for time in time_points]
+    labels = [time.strftime("%d/%m/%Y") for time in time_points]
     data = []
     for time in time_points:
         try:
