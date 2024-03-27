@@ -53,6 +53,10 @@ def draft_leaderboard(request):
         for player in UserDraftPlayer.objects.filter(draft=draft):
             draft_players[draft.user.username][player.player.position] = f"{player.player.team.short_name} {player.player.in_game_name} ({player.player.score})"
             draft_player_ids[draft.user.username][player.player.position] = player.player.player_id
+        for position in positions:
+            if position not in draft_players[draft.user.username]:
+                draft_players[draft.user.username][position] = "---"
+                draft_player_ids[draft.user.username][position] = ""
 
     time_points = set()
 
