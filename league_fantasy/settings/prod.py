@@ -34,5 +34,3 @@ LOGGING = {
         },
     }
 }
-
-DEBUG = True
