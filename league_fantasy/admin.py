@@ -52,7 +52,7 @@ class TournamentAdmin(admin.ModelAdmin):
     refresh_game_stat_data_for_tournament,
     recalculate_scores_for_tournament
   ]
-  list_display = ["name", "season"]
+  list_display = ["name", "season", "active"]
 
 class SeasonAdmin(admin.ModelAdmin):
   actions = [
