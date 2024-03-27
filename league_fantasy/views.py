@@ -1,6 +1,7 @@
 from django.http import HttpResponse, HttpResponseRedirect, HttpResponseBadRequest, HttpResponseForbidden
 from django.shortcuts import render
 from .scraper.scrape_teams import get_teams_and_players_for_tournament
+from .scraper.score_calculator import get_player_score_sources_per_game_for_active_tournament
 from .models import Player, UserDraft, UserDraftPlayer, UserDraftScorePoint, PlayerScorePoint
 from collections import defaultdict
 from django.contrib.auth import logout
@@ -170,6 +171,19 @@ def player_graph(request, player_id=None):
         player = Player.objects.get(player_id=player_id)
     except:
         return HttpResponseBadRequest()
+    
+    game_scores = get_player_score_sources_per_game_for_active_tournament(player)
+    game_names = [
+        (game.team_a.short_name, game.team_a.team_id == game.winner,
+         game.team_b.short_name, game.team_b.team_id == game.winner) for game, _ in game_scores
+    ]
+    scores = [score for _, score in game_scores]
+
+    sources = set()
+    for score in scores:
+        sources |= set(score.score_sources.keys())
+    sources = list(sorted(sources))
+    sources = [(source, source.replace("_", " ").title()) for source in sources]
 
     time_points = set()
 
@@ -205,5 +219,8 @@ def player_graph(request, player_id=None):
     return render(request, "player_graph_page.html", {
         "player": player,
         "player_name": f"{player.team.short_name} {player.in_game_name}",
-        "graph_data": graph_data
+        "graph_data": graph_data,
+        "sources": sources,
+        "scores": scores,
+        "game_names": game_names
     })
