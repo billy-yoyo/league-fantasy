@@ -1,0 +1,10 @@
+{% extends "base_authed.html" %}
+
+
+{% block auth_content %}
+  <article>
+    {% include 'drafter.html' %}
+    {% include 'player_leaderboard.html' %}
+  </article>
+{% endblock %}
+

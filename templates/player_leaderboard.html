@@ -1,12 +1,9 @@
-{% extends "base_authed.html" %}
 {% load static %}
 
-{% block auth_content %}
-
-<div style="display: flex; flex-direction: row;">
+<div style="display: flex; flex-direction: row; margin-bottom: 1rem;">
     {% for position in positions %}
-        <button data-position="{{position}}" onclick="filterBy(this)">
-            <img src="{% static 'positions/'|add:position|add:'.png' %}" width="40" height="40"></img>
+        <button class="position" data-position="{{position}}" onclick="filterBy(this)">
+            <img src="{% static 'positions/'|add:position|add:'.png' %}" width="30" height="30"></img>
         </button>
     {% endfor %}
 </div>
@@ -23,26 +20,39 @@
     <tbody>
         {% for player in players %}
             <tr class="player-row" data-position="{{ player.position }}">
-                <th scope="row">{{ player.in_game_name }}</th>
-                <th>
-                    <img src="{% static player.team.icon_url %}" width="20" height="20"></img>
-                    <span>{{ player.team.full_name }}</span>
+                <th scope="row" class="name">
+                    <a href="/players/{{ player.player_id }}">
+                        {{ player.in_game_name }}
+                    </a>
                 </th>
-                <th><img src="{% static 'positions/'|add:player.position|add:'.png' %}" width="20" height="20"></img></th>
-                <th>{{ player.score }}</th>
+                <td>
+                    <div class="row">
+                        <img src="{% static player.team.icon_url %}" style="background-color: {{ player.team.background_colour }};" width="20" height="20"></img>
+                        <span>{{ player.team.full_name }}</span>
+                    </div>
+                </td>
+                <td>
+                    <div class="row">
+                        <img src="{% static 'positions/'|add:player.position|add:'.png' %}" width="20" height="20"></img>
+                    </div>
+                </td>
+                <td>{{ player.score }}</td>
             </tr>
         {% endfor %}
     </tbody>
 </table>
 
 <script>
-    const tableState = { position: null };
+    const tableState = { position: null, cur: null };
     const filterBy = (button) => {
         const position = button.dataset.position;
+        if (tableState.cur) {
+            tableState.cur.classList.remove("selected");
+        }
         if (tableState.position === position) {
             document.querySelectorAll('.player-row').forEach(node => node.classList.remove("hidden"));
             tableState.position = null;
-            button.classList.remove("selected");
+            tableState.cur = null;
         } else {
             document.querySelectorAll('.player-row').forEach(node => {
                 if (node.dataset.position === position) {
@@ -53,8 +63,7 @@
             });
             tableState.position = position;
             button.classList.add("selected");
+            tableState.cur = button;
         }
     };
 </script>
-
-{% endblock %}

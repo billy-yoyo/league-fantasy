@@ -1,0 +1,35 @@
+{% load static %}
+
+<h1 class="player-title">
+  <img class="team-icon" src="{% static player.team.icon_url %}" style="background-color: {{ player.team.background_colour }};" width="30" height="30"></img>
+  {{ player_name }}
+  <div class="player-position">
+    (
+      <img class="team-icon" src="{% static 'positions/'|add:player.position|add:'.png' %}" width="20" height="20"></img>
+    )
+  </div>
+  
+</h1>
+
+{{ graph_data|json_script:"graph_data" }}
+
+<div id="graph" class="tab-item">
+  <canvas id="player-graph"></canvas>
+</div>
+
+<script>
+  const graphData = JSON.parse(document.getElementById("graph_data").textContent)
+
+  new Chart(document.getElementById('player-graph'), {
+    type: 'line',
+    data: graphData,
+    options: {
+      plugins: {
+        legend: {
+          display: false
+        }
+      }
+    }
+  })
+</script>
+

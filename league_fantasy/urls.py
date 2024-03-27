@@ -26,5 +26,10 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path("accounts/", include("django.contrib.auth.urls")),
     path('', TemplateView.as_view(template_name="home.html"), name="home"),
-    path("players/", views.player_leaderboard)
+    path("players/", views.player_leaderboard),
+    path("players/<slug:player_id>/", views.player_graph),
+    path("draft/", views.draft),
+    path("submit-draft/", views.submit_draft),
+    path("leaderboard/", views.draft_leaderboard),
+    path("logout/", views.logout)
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

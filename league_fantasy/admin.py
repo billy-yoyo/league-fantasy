@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Tournament, Season, Team, Player, Game
+from .models import Tournament, Season, Team, Player, Game, UserDraft
 from .scraper.scrape_games import update_game_data_for_tournament, update_game_data_for_season, refresh_game_data_for_season, refresh_game_data_for_tournament
 from .scraper.scrape_teams import get_teams_and_players_for_tournament
 from .scraper.score_calculator import update_all_player_scores_for_season, update_all_player_scores_for_tournament
@@ -72,6 +72,9 @@ class PlayerAdmin(admin.ModelAdmin):
 class GameAdmin(admin.ModelAdmin):
   list_display = ["game_id", "team_a", "team_b", "winner", "tournament"]
 
+class UserDraftAdmin(admin.ModelAdmin):
+  list_display = ["user", "score"]
+
 
 admin.site.register(Tournament, TournamentAdmin)
 admin.site.register(Season, SeasonAdmin)
@@ -79,4 +82,4 @@ admin.site.register(Season, SeasonAdmin)
 admin.site.register(Team, TeamAdmin)
 admin.site.register(Player, PlayerAdmin)
 admin.site.register(Game, GameAdmin)
-
+admin.site.register(UserDraft, UserDraftAdmin)

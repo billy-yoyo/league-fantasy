@@ -141,12 +141,12 @@ def update_player_score(player, tournaments, time):
   player.score = score.score
   player.save()
 
-  PlayerScorePoint(player=player, score=score, time=time).save()
+  PlayerScorePoint(player=player, score=score.score, time=time).save()
 
 def update_user_draft(user_draft, time):
   score = 0
   for player in UserDraftPlayer.objects.filter(draft=user_draft):
-    score += player.score
+    score += player.player.score
   
   user_draft.score = score
   user_draft.save()

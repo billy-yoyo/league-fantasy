@@ -10,6 +10,7 @@ class Season(models.Model):
 class Tournament(models.Model):
   name = models.CharField(max_length=255)
   season = models.ForeignKey(Season, on_delete=models.CASCADE)
+  active = models.BooleanField(default=False)
 
   def __str__(self):
     return self.name
@@ -19,6 +20,7 @@ class Team(models.Model):
   short_name = models.CharField(max_length=10)
   team_id = models.CharField(max_length=70)
   icon_url = models.CharField(max_length=255)
+  background_colour = models.CharField(max_length=10, default="#ffffff")
   active = models.BooleanField(default=True)
 
   def __str__(self) -> str:
@@ -77,6 +79,7 @@ class PlayerStat(models.Model):
 class UserDraft(models.Model):
   user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
   score = models.FloatField()
+  colour = models.CharField(max_length=10, default="#000000")
 
 class UserDraftScorePoint(models.Model):
   draft = models.ForeignKey(UserDraft, on_delete=models.CASCADE)

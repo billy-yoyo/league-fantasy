@@ -1,0 +1,25 @@
+{% load static %}
+
+<form id="draft-form" class="draft" action="/submit-draft/" method="post">
+  {% for position in positions %}
+    <div class="input-row">
+      <img src="{% static 'positions/'|add:position|add:'.png' %}" width="30" height="30"></img>
+      <select name="position_{{position}}" form="draft-form">
+        <option value="none">---</option>
+        {% for player in players %}
+          {% if player.position == position %}
+            <option value="{{ player.player_id }}" {% if player.player_id == draft|keyvalue:position %} selected="true" {% endif %}>{{ player.team.short_name }} {{ player.in_game_name }}</option>
+          {% endif %}
+        {% endfor %}
+      </select>
+    </div>
+  {% endfor %}
+
+  {% csrf_token %}
+
+  <input type="submit" value="Submit Draft" />
+
+  {% if error %}
+    <span class="error">Invalid draft, make sure you've picked a player for every role.</span>
+  {% endif %}
+</form>

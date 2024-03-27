@@ -1,0 +1,47 @@
+{% load static %}
+
+<div>
+  <table>
+    <thead>
+      <tr>
+        <th scope="col">User</th>
+        {% for position in positions %}
+          <th scope="col" class="player-col">
+            <div class="row">
+              <img src="{% static 'positions/'|add:position|add:'.png' %}" width="30" height="30"></img>
+            </div>
+          </th>
+        {% endfor %}
+        <th scope="col">Score</th>
+      </tr>
+    </thead>
+    {% for draft in drafts %}
+      <tr>
+        <th scope="row">{{ draft.user.username }}</th>
+        {% for position in positions %}
+          <td class="player-col">
+            <a href="../players/{{ draft_player_ids|keyvalue:draft.user.username|keyvalue:position }}">
+              {{ draft_players|keyvalue:draft.user.username|keyvalue:position }}
+            </a>
+          </td>
+        {% endfor %}
+        <td>{{ draft.score }}</td>
+      </tr>
+    {% endfor %}
+  </table>
+
+  {{ graph_data|json_script:"graph_data" }}
+
+  <div id="graph" class="tab-item">
+    <canvas id="draft-graph"></canvas>
+  </div>
+
+  <script>
+    const graphData = JSON.parse(document.getElementById("graph_data").textContent)
+
+    new Chart(document.getElementById('draft-graph'), {
+      type: 'line',
+      data: graphData
+    })
+  </script>
+</div>

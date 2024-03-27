@@ -1,12 +1,34 @@
+
+{% load static %}
+
 <!DOCTYPE html>
 <html>
 
 <head>
   <meta charset="utf-8">
+  <script src="https://kit.fontawesome.com/13a2349612.js" crossorigin="anonymous"></script>
+  <link rel="stylesheet" href="{% static 'style.css' %}">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <title>{% block title %}LEC Fantasy{% endblock %}</title>
 </head>
 
 <body>
+  <header>
+    <div class="inner-header">
+      <h1>
+        Euphoria Draft
+      </h1>
+      <div class="nav-buttons">
+        <a href="/leaderboard" class="nav-button">Leaderboard</a>
+        <a href="/players" class="nav-button">Players</a>
+        <a href="/draft" class="nav-button">Draft</a>
+        <a href="/logout" class="nav-button">Logout ({{ user.username }})</a>
+      </div>
+    </div>
+  </header>
   <main>
     {% block content %}
     {% endblock %}
