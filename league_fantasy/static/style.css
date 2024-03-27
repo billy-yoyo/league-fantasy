@@ -251,3 +251,81 @@ td.empty-table {
   border-top-color: #050f1f;
   border-right-color: #050f1f;
 }
+
+.name-form {
+  display: flex;
+  flex-direction: row;
+}
+
+.name-form input[type=text] {
+  margin-left: 10px;
+}
+
+.left-aligned-container {
+  display: flex;
+  flex-direction: column;
+  align-items: start;
+
+}
+
+ul {
+  margin-bottom: 35px;
+}
+
+.horz-spaced {
+  margin: 0px 20px;
+}
+
+.align-right {
+  flex: 1;
+  text-align: right;
+}
+
+.fullwidth {
+  width: 100%;
+}
+
+.member-table {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  margin-bottom: 30px;
+  background-color: #234;
+}
+
+.member-row {
+  display: flex;
+  flex-direction: row;
+  width: 100%;
+  padding: 8px 12px;
+  box-sizing: border-box;
+  align-items: center;
+}
+
+.member-row button {
+  margin-left: 5px;
+  margin-right: 5px;
+  align-self: center;
+  background-color: #345;
+  color: white;
+  padding: 8px 12px;
+  font-weight: bold;
+  border: none;
+  font-weight: 1.5rem;
+  border-radius: 5px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.member-row:nth-child(even) {
+  background-color: #1a2a3a;
+}
+
+.member-row:last-child {
+  border-bottom-width: 0;
+}
+
+.space-filler {
+  flex: 1;
+}

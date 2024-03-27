@@ -1,32 +1,8 @@
 from django.http import HttpResponse, HttpResponseRedirect, HttpResponseBadRequest, HttpResponseForbidden
 from django.shortcuts import render
-from .scraper.scrape_teams import get_teams_and_players_for_tournament
 from .scraper.score_calculator import get_player_score_sources_per_game_for_active_tournament
-from .models import Player, UserDraft, UserDraftPlayer, UserDraftScorePoint, PlayerScorePoint
-from collections import defaultdict
+from .models import Player, UserDraft, UserDraftPlayer, PlayerScorePoint
 from django.contrib.auth import logout
-import datetime
-
-TOURNAMENT = "LEC Spring Season 2024"
-
-def refresh_teams_and_players(request):
-    [teams, players] = get_teams_and_players_for_tournament(TOURNAMENT)
-
-    lines = []
-    lines.append("<h2>Teams:</h2><ul>")
-    for team in teams:
-        lines.append(f"<li>{team.team_id}, {team.full_name}, {team.short_name}</li>")
-
-    lines.append("</ul>")
-    lines.append("<h2>Players:</h2><ul>")
-    for player in players:
-        lines.append(f"<li>{player.player_id}, {player.in_game_name}, {player.country}, {player.position}, {player.score}</li>")
-    lines.append("</ul>")
-
-    return HttpResponse("\n".join(lines))
-
-def refresh_matches(request):
-    return HttpResponse("Done")
 
 def logout_view(request):
     logout(request)
@@ -45,60 +21,6 @@ def player_leaderboard(request):
 
 GRAPH_DATA_POINTS = 10
 
-def draft_leaderboard(request):
-    drafts = UserDraft.objects.order_by("-score").all()
-    draft_players = defaultdict(dict)
-    draft_player_ids = defaultdict(dict)
-    positions = ("top", "jungle", "mid", "bot", "support")
-
-    for draft in drafts:
-        for player in UserDraftPlayer.objects.filter(draft=draft):
-            draft_players[draft.user.username][player.player.position] = f"{player.player.team.short_name} {player.player.in_game_name} ({player.player.score})"
-            draft_player_ids[draft.user.username][player.player.position] = player.player.player_id
-        for position in positions:
-            if position not in draft_players[draft.user.username]:
-                draft_players[draft.user.username][position] = "---"
-                draft_player_ids[draft.user.username][position] = ""
-
-    time_points = set()
-
-    for score_point in UserDraftScorePoint.objects.order_by("-time"):
-        time_points.add(score_point.time)
-        if len(time_points) >= GRAPH_DATA_POINTS:
-            break
-
-    time_points = sorted(time_points)
-    
-    labels = [time.strftime("%d/%m/%Y") for time in time_points]
-    datasets = []
-    for draft in drafts:
-        data = []
-        for time in time_points:
-            try:
-                score_point = UserDraftScorePoint.objects.get(draft=draft, time=time)
-                data.append(score_point.score)
-            except:
-                data.append(0)
-        datasets.append({
-            "label": draft.user.username,
-            "data": data,
-            "fill": False,
-            "borderColor": draft.colour,
-            "tension": 0.1
-        })
-
-    graph_data = {
-        "labels": labels,
-        "datasets": datasets
-    }
-
-    return render(request, "draft_leaderboard_page.html", {
-        "drafts": drafts,
-        "positions": positions,
-        "draft_players": draft_players,
-        "draft_player_ids": draft_player_ids,
-        "graph_data": graph_data
-    })
 
 def draft(request):
     players = Player.objects.filter(active=True).order_by("-score").all()
@@ -230,3 +152,5 @@ def player_graph(request, player_id=None):
         "source_totals": source_totals,
         "colspan": len(game_names) + 1
     })
+
+

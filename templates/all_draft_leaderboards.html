@@ -1,0 +1,21 @@
+
+
+<div class="left-aligned-container">
+
+  <h2>Leaderboards:</h2>
+  <ul>
+    {% for leaderboard in leaderboards %}
+      <li>
+        <a href="/leaderboard/{{ leaderboard.id }}">{{ leaderboard.name }}</a>
+      </li>
+    {% endfor %}
+  </ul>
+
+  <form class="name-form" action="/leaderboards/create" method="post">
+    {% csrf_token %}
+
+    <input type="submit" value="Create Leaderboard" />
+    <input type="text" name="name" />
+  </form>
+
+</div>
