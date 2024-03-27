@@ -4,7 +4,7 @@ with open("/etc/secret.txt") as f:
   SECRET_KEY = f.read().strip()
 
 ALLOWED_HOSTS = [
-  ".euphoria-fantasy.co.uk"
+  ".euphoriadraft.co.uk"
 ]
 
 STATIC_ROOT = "/var/www/league_fantasy/static"

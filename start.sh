@@ -1,5 +1,5 @@
 
-cp -r ./infrastructure/ /etc/nginx
+cp -r ./infrastructure/. /etc/nginx/
 sudo systemctl reload nginx
 
 source .venv/bin/activate
