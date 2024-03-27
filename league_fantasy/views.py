@@ -4,6 +4,7 @@ from .scraper.scrape_teams import get_teams_and_players_for_tournament
 from .models import Player, UserDraft, UserDraftPlayer, UserDraftScorePoint, PlayerScorePoint
 from collections import defaultdict
 from django.contrib.auth import logout
+import datetime
 
 TOURNAMENT = "LEC Spring Season 2024"
 
@@ -151,6 +152,8 @@ def submit_draft(request):
 
     try:
         user_draft = UserDraft.objects.get(user=request.user)
+        user_draft.score = score
+        user_draft.save()
     except:
         user_draft = UserDraft(user=request.user, score=score)
         user_draft.save()
