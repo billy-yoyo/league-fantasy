@@ -26,9 +26,15 @@ def refresh_teams_and_players(request):
 def refresh_matches(request):
     return HttpResponse("Done")
 
-def logout(request):
+def logout_view(request):
     logout(request)
     return HttpResponseRedirect("/")
+
+def profile(request):
+    return HttpResponseRedirect("/")
+
+def home(request):
+    return HttpResponseRedirect("/leaderboard")
 
 def player_leaderboard(request):
     players = Player.objects.filter(active=True).order_by("-score").all()
