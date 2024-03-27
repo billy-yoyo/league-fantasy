@@ -123,12 +123,6 @@ input[type=submit] {
   text-align: center;
 }
 
-@media (max-width: 1250px) {
-  .player-col {
-    display: none;
-  }
-}
-
 #graph {
   width: 100%;
   height: 500px;
