@@ -185,6 +185,10 @@ def player_graph(request, player_id=None):
     sources = list(sorted(sources))
     sources = [(source, source.replace("_", " ").title()) for source in sources]
 
+    source_totals = {}
+    for source, _ in sources:
+        source_totals[source] = sum(score.get(source) for score in scores)
+
     time_points = set()
 
     for score_point in PlayerScorePoint.objects.filter(player=player).order_by("-time"):
@@ -222,5 +226,7 @@ def player_graph(request, player_id=None):
         "graph_data": graph_data,
         "sources": sources,
         "scores": scores,
-        "game_names": game_names
+        "game_names": game_names,
+        "source_totals": source_totals,
+        "colspan": len(game_names) + 1
     })

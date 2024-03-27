@@ -238,3 +238,16 @@ h1.player-title .player-position {
 .vs {
   font-size: 0.75rem;
 }
+
+td.total {
+  background-color: #050f1f;
+  border-color: #123;
+}
+
+td.empty-table {
+  background-color: #123;
+  border-color: #123;
+  border-width: 2px;
+  border-top-color: #050f1f;
+  border-right-color: #050f1f;
+}
