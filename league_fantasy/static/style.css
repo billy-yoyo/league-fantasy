@@ -199,3 +199,20 @@ h1.player-title .player-position {
   align-items: center;
   margin-left: 5px;
 }
+
+.header-row {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+}
+
+.header-row img {
+  margin-right: 10px;
+}
+
+@media (max-width: 1250px) {
+  .header-row div {
+    display: none;
+  }
+}
