@@ -52,7 +52,8 @@ class Command(BaseCommand):
 
     scheduler.add_job(
       daily_refresh_job,
-      trigger=CronTrigger(hour=1, minute=0), # 1AM every day
+      #trigger=CronTrigger(hour=1, minute=0), # 1AM every day
+      trigger=CronTrigger(second="*/10"), # 1AM every day
       id="daily_refresh_job",  
       max_instances=1,
       replace_existing=True,

@@ -14,7 +14,7 @@ def daily_refresh_job():
     print("updated game data")
 
 class Command(BaseCommand):
-  help = "Runs APScheduler."
+  help = "Update game data."
 
   def handle(self, *args, **options):
     daily_refresh_job()
