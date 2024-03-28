@@ -140,12 +140,14 @@ def draft_leaderboard(request, leaderboard_id=None):
     drafts = UserDraft.objects.filter(user__in=members).order_by("-score").all()
     draft_players = defaultdict(dict)
     draft_player_ids = defaultdict(dict)
+    user_colours = defaultdict(lambda: "#000000")
     positions = ("top", "jungle", "mid", "bot", "support")
 
     for draft in drafts:
         for player in UserDraftPlayer.objects.filter(draft=draft):
             draft_players[draft.user.username][player.player.position] = f"{player.player.team.short_name} {player.player.in_game_name} ({player.player.score})"
             draft_player_ids[draft.user.username][player.player.position] = player.player.player_id
+            user_colours[draft.user.username] = draft.colour
         for position in positions:
             if position not in draft_players[draft.user.username]:
                 draft_players[draft.user.username][position] = "---"
@@ -161,7 +163,7 @@ def draft_leaderboard(request, leaderboard_id=None):
       "label": username,
       "data": data,
       "fill": False,
-      "borderColor": draft.colour,
+      "borderColor": user_colours,
       "tension": 0.1
     } for username, data in raw_datasets]
 
