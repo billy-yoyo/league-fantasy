@@ -3,6 +3,7 @@ from django.shortcuts import render
 from .scraper.score_calculator import get_player_score_sources_per_game_for_active_tournament
 from .models import Player, UserDraft, UserDraftPlayer, PlayerScorePoint
 from django.contrib.auth import logout
+from .graphing.group_by_time import group_data_by_day
 
 def logout_view(request):
     logout(request)
@@ -111,35 +112,23 @@ def player_graph(request, player_id=None):
     for source, _ in sources:
         source_totals[source] = sum(score.get(source) for score in scores)
 
-    time_points = set()
-
-    for score_point in PlayerScorePoint.objects.filter(player=player).order_by("-time"):
-        time_points.add(score_point.time)
-        if len(time_points) >= GRAPH_DATA_POINTS:
-            break
-
-    time_points = sorted(time_points)
+    labels, raw_datasets = group_data_by_day(
+        PlayerScorePoint.objects.filter(player=player).order_by("-time"),
+        GRAPH_DATA_POINTS,
+        lambda x: x.player.id
+    )
     
-    labels = [time.strftime("%d/%m/%Y") for time in time_points]
-    data = []
-    for time in time_points:
-        try:
-            score_point = PlayerScorePoint.objects.get(player=player, time=time)
-            data.append(score_point.score)
-        except:
-            data.append(0)
-    
-    dataset = {
+    datasets = [{
         "label": "",
         "data": data,
         "fill": False,
         "borderColor": "#dedede",
         "tension": 0.1
-    }
+    } for _, data in raw_datasets]
 
     graph_data = {
         "labels": labels,
-        "datasets": [dataset]
+        "datasets": datasets
     }
 
     return render(request, "player_graph_page.html", {

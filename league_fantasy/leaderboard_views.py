@@ -3,6 +3,7 @@ from django.shortcuts import render
 from django.contrib.auth import get_user_model
 from .models import UserDraft, UserDraftPlayer, UserDraftScorePoint, Leaderboard, LeaderboardMember
 from collections import defaultdict
+from .graphing.group_by_time import group_data_by_day
 
 def create_leaderboard(request):
   name = request.POST.get("name", None)
@@ -150,32 +151,19 @@ def draft_leaderboard(request, leaderboard_id=None):
                 draft_players[draft.user.username][position] = "---"
                 draft_player_ids[draft.user.username][position] = ""
 
-    time_points = set()
+    labels, raw_datasets = group_data_by_day(
+       UserDraftScorePoint.objects.filter(draft__in=drafts).order_by("-time"),
+       GRAPH_DATA_POINTS,
+       lambda x: x.draft.user.username
+    )
 
-    for score_point in UserDraftScorePoint.objects.filter(draft__in=drafts).order_by("-time"):
-        time_points.add(score_point.time)
-        if len(time_points) >= GRAPH_DATA_POINTS:
-            break
-
-    time_points = sorted(time_points)
-    
-    labels = [time.strftime("%d/%m/%Y") for time in time_points]
-    datasets = []
-    for draft in drafts:
-        data = []
-        for time in time_points:
-            try:
-                score_point = UserDraftScorePoint.objects.get(draft=draft, time=time)
-                data.append(score_point.score)
-            except:
-                data.append(0)
-        datasets.append({
-            "label": draft.user.username,
-            "data": data,
-            "fill": False,
-            "borderColor": draft.colour,
-            "tension": 0.1
-        })
+    datasets = [{
+      "label": username,
+      "data": data,
+      "fill": False,
+      "borderColor": draft.colour,
+      "tension": 0.1
+    } for username, data in raw_datasets]
 
     graph_data = {
         "labels": labels,
