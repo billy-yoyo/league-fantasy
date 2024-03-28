@@ -11,6 +11,39 @@
   
 </h1>
 
+<div class="scrollable-table">
+  <table>
+    <thead>
+      <tr>
+        <th scope="col"></th>
+        {% for game_name in game_names %}
+          <th scope="col"> 
+            <div class="game-name-col">
+              <div {% if game_name.1 %} class="winner" {% endif %}>{{ game_name.0 }}</div>
+              <div class="vs">vs</div>
+              <div {% if game_name.3 %} class="winner" {% endif %}>{{ game_name.2 }}</div>
+            </div>
+          </th>
+        {% endfor %}
+        <th scope="col">Total</th>
+      </tr>
+    </thead>
+    {% for stat_source in sources %}
+      <tr>
+        <th class="fix" scope="row"> {{ stat_source.1 }} </th>
+        {% for score in scores %}
+          <td>{% if score|keyvalue:stat_source.0 is not None %} {{ score|keyvalue:stat_source.0|toint }} {% else %} 0 {% endif %}</td>
+        {% endfor %}
+        <td class="total"> {{ source_totals|keyvalue:stat_source.0|toint }} </td>
+      </tr>
+    {% endfor %}
+    <tr>
+      <td class="empty-table" colspan="{{ colspan }}"></td>
+      <td>{{ player.score }}</td>
+    </tr>
+  </table>
+</div>
+
 {{ graph_data|json_script:"graph_data" }}
 
 <div id="graph" class="tab-item">

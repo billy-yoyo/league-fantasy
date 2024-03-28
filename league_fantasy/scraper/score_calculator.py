@@ -9,6 +9,9 @@ class ScoreComputer:
     self.score = score
     self.score_sources = defaultdict(int)
   
+  def get(self, source):
+    return self.score_sources.get(source, 0)
+
   def add(self, name, value):
     self.score += value
     self.score_sources[name] += value
@@ -23,6 +26,9 @@ class ScoreComputer:
     for name, value in sorted(self.score_sources.items()):
       lines.append(f"    {name}: {value}")
     return "\n".join(lines)
+  
+  def __contains__(self, item):
+    return item in self.score_sources
 
 def calculate_kda_score(position, stats):
   kda = stats.get(StatName.kda, 0)
@@ -124,6 +130,19 @@ def calculate_score_for_game(winner, position, stats):
   score.add("solo_kills", solo_kills * 2)
 
   return score
+
+def get_player_score_sources_per_game_for_active_tournament(player):
+  game_scores = []
+  for game in Game.objects.filter(tournament__active=True):
+    stats = {}
+    for stat in PlayerStat.objects.filter(game=game).filter(player=player):
+      stats[stat.stat_name] = stat.stat_value
+    
+    if len(stats) == 0:
+      continue
+    game_score = calculate_score_for_game(game.winner == player.team.team_id, player.position, stats)
+    game_scores.append((game, game_score))
+  return sorted(game_scores, key=lambda x: x[0].game_id)
 
 def update_player_score(player, tournaments, time):
   score = ScoreComputer(0)
