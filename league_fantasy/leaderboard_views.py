@@ -163,7 +163,7 @@ def draft_leaderboard(request, leaderboard_id=None):
       "label": username,
       "data": data,
       "fill": False,
-      "borderColor": user_colours,
+      "borderColor": user_colours[username],
       "tension": 0.1
     } for username, data in raw_datasets]
 
