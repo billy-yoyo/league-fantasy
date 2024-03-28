@@ -15,16 +15,19 @@ from ...scraper.score_calculator import update_all_player_scores_for_tournament
 from ...models import Tournament
 
 logger = logging.getLogger(__name__)
+fh = logging.FileHandler("scheduler.log")
+fh.setLevel(logging.INFO)
+logger.addHandler(fh)
 
 def daily_refresh_job():
   try:
     active_tournament = Tournament.objects.filter(active=True).first()
   except:
-    print("no active tournament")
+    logger.info("no active tournament")
 
   update_game_data_for_tournament(active_tournament)
   update_all_player_scores_for_tournament(active_tournament)
-  print("updated game data")
+  logger.info("updated game data")
 
 
 # The `close_old_connections` decorator ensures that database connections, that have become
@@ -52,8 +55,8 @@ class Command(BaseCommand):
 
     scheduler.add_job(
       daily_refresh_job,
-      #trigger=CronTrigger(hour=1, minute=0), # 1AM every day
-      trigger=CronTrigger(second="*/10"), # 1AM every day
+      trigger=CronTrigger(hour=3, minute=0), # 3AM every day
+      #trigger=CronTrigger(second="*/10"), # 1AM every day
       id="daily_refresh_job",  
       max_instances=1,
       replace_existing=True,
