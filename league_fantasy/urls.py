@@ -21,6 +21,7 @@ from django.conf.urls.static import static
 from django.conf import settings
 
 import league_fantasy.views as views
+import league_fantasy.leaderboard_views as leaderboard_views
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -30,7 +31,16 @@ urlpatterns = [
     path("players/<slug:player_id>/", views.player_graph),
     path("draft/", views.draft),
     path("submit-draft/", views.submit_draft),
-    path("leaderboard/", views.draft_leaderboard),
     path("logout/", views.logout_view),
     path("accounts/profile/", views.profile),
+    path("leaderboard/", leaderboard_views.draft_leaderboard),
+    path("leaderboards/", leaderboard_views.all_draft_leaderboards),
+    path("leaderboards/create", leaderboard_views.create_leaderboard),
+    path("leaderboard/<slug:leaderboard_id>", leaderboard_views.draft_leaderboard),
+    path("leaderboard/<slug:leaderboard_id>/manage", leaderboard_views.manage_leaderboard),
+    path("leaderboard/<slug:leaderboard_id>/manage/invite", leaderboard_views.add_leaderboard_member),
+    path("leaderboard/<slug:leaderboard_id>/manage/kick", leaderboard_views.kick_leaderboard_member),
+    path("leaderboard/<slug:leaderboard_id>/manage/promote", leaderboard_views.promote_leaderboard_member),
+    path("leaderboard/<slug:leaderboard_id>/manage/demote", leaderboard_views.demote_leaderboard_member),
+    path("leaderboard/<slug:leaderboard_id>/manage/delete", leaderboard_views.delete_leaderboard),
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

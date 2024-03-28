@@ -1,6 +1,18 @@
 {% load static %}
 
+
+
 <div>
+  <h1 class="fullwidth">
+    <div class="row fullwidth">
+      <a href="/leaderboards"><i class="fa-solid fa-arrow-left"></i></a>
+      <div class="horz-spaced">{{ leaderboard.name }}</div>
+      {% if is_admin %}
+        <a href="/leaderboard/{{ leaderboard.id }}/manage" class="align-right">Manage</a>
+      {% endif %}
+    </div>
+  </h1>
+
   <table>
     <thead>
       <tr>

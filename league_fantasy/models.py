@@ -90,4 +90,10 @@ class UserDraftPlayer(models.Model):
   draft = models.ForeignKey(UserDraft, on_delete=models.CASCADE)
   player = models.ForeignKey(Player, on_delete=models.CASCADE)
 
+class Leaderboard(models.Model):
+  name = models.CharField(max_length=70)
 
+class LeaderboardMember(models.Model):
+  user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+  leaderboard = models.ForeignKey(Leaderboard, on_delete=models.CASCADE)
+  is_admin = models.BooleanField()

@@ -1,0 +1,49 @@
+
+<div class="left-aligned-container fullwidth">
+  <h1 class="fullwidth">
+    <div class="row fullwidth">
+      <div>
+        {{ leaderboard.name }}
+      </div>
+      <div class="space-filler"></div>
+      <form onsubmit="return confirm('Are you sure you want to delete the leaderboard: {{ leaderboard.name }}')" class="delete-leaderboard" action="/leaderboard/{{ leaderboard.id }}/manage/delete", method="post">
+        {% csrf_token %}
+        <input type="submit" value="Delete Leaderboard" />
+      </form>
+  </h1>
+
+  
+
+  {% if error %}
+    <p class="error">Invalid username</p>
+  {% endif %}
+
+  <div class="member-table">
+    {% for member in members %}
+      <form class="member-row" method="post">
+        {% csrf_token %}
+
+        <input type="hidden" name="name" value="{{ member.user.username }}">
+        <div>{{ member.user.username }}</div>
+        <div class="space-filler"></div>
+        {% if member.user.username != user.username %}
+          {% if member.is_admin %}
+            <button type="submit" formaction="/leaderboard/{{ leaderboard.id }}/manage/demote">Demote</button>
+          {% else %}
+            <button type="submit" formaction="/leaderboard/{{ leaderboard.id }}/manage/promote">Promote</button>
+          {% endif %}
+          <button type="submit" formaction="/leaderboard/{{ leaderboard.id }}/manage/kick">Kick</button>
+        {% endif %}
+      </form>
+
+    {% endfor %}
+  </div>
+
+  <form class="name-form" action="/leaderboard/{{ leaderboard.id }}/manage/invite" method="post">
+    {% csrf_token %}
+
+    <input type="submit" value="Invite" />
+    <input type="text" name="name" />
+  </form>
+
+</div>
