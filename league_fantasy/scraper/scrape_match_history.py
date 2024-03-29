@@ -109,6 +109,14 @@ def scrape_match_list(tournament):
         statistics_loaded=False
       )
       game.save()
+    else:
+      game.team_a = team_a
+      game.team_b = team_b
+      game.winner = winner
+      game.tournament = tournament
+      game.time = time
+      game.rpgid  = rpgid
+      game.save()
     
     games.append(game)
   return games
