@@ -6,7 +6,9 @@ Requires the following python packages:
 * django
 * requests
 * beautifulsoup4
+* lxml
 * django-apscheduler
+* mwrogue
 
 ## Setup
 
@@ -15,6 +17,7 @@ Requires the following python packages:
 ## Running in production
 
 Put a secret file in `/etc/secret.txt` containing the server secret
+Put a file in `/etc/bot.txt` containing the bot username + password in JSON format with keys "username" and "password".
 
 * run `python manage.py migrate --settings=settings.dev`
 * install gunicorn: `python -m pip install gunicorn`

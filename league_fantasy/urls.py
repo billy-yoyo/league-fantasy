@@ -28,7 +28,7 @@ urlpatterns = [
     path("accounts/", include("django.contrib.auth.urls")),
     path('', views.home),
     path("players/", views.player_leaderboard),
-    path("players/<slug:player_id>/", views.player_graph),
+    path("players/<int:player_id>/", views.player_graph),
     path("draft/", views.draft),
     path("submit-draft/", views.submit_draft),
     path("logout/", views.logout_view),

@@ -18,8 +18,7 @@ class Tournament(models.Model):
 class Team(models.Model):
   full_name = models.CharField(max_length=70)
   short_name = models.CharField(max_length=10)
-  team_id = models.CharField(max_length=70)
-  icon_url = models.CharField(max_length=255)
+  icon_url = models.CharField(max_length=255, default="")
   background_colour = models.CharField(max_length=10, default="#ffffff")
   active = models.BooleanField(default=True)
 
@@ -27,14 +26,17 @@ class Team(models.Model):
     return self.full_name
   
 class Game(models.Model):
-  game_id = models.CharField(max_length=70)
   team_a = models.ForeignKey(Team, on_delete=models.CASCADE, related_name="team_a")
   team_b = models.ForeignKey(Team, on_delete=models.CASCADE, related_name="team_b")
-  winner = models.CharField(max_length=70)
+  winner = models.IntegerField()
   tournament = models.ForeignKey(Tournament, on_delete=models.CASCADE)
+  time = models.DateTimeField()
+  rpgid = models.CharField(max_length=70)
+  statistics_loaded = models.BooleanField(default=False)
+  game_duration = models.FloatField(default=1)
 
   def __str__(self):
-    return self.game_id
+    return self.rpgid
 
 class Player(models.Model):
   POSITIONS = {
@@ -46,10 +48,8 @@ class Player(models.Model):
   }
   in_game_name = models.CharField(max_length=70)
   team = models.ForeignKey(Team, on_delete=models.CASCADE)
-  player_id = models.CharField(max_length=70)
-  country = models.CharField(max_length=5)
   position = models.CharField(max_length=70, choices=POSITIONS)
-  score = models.FloatField()
+  score = models.FloatField(default=0)
   active = models.BooleanField(default=True)
 
   def __str__(self):
@@ -81,6 +81,9 @@ class UserDraft(models.Model):
   score = models.FloatField()
   colour = models.CharField(max_length=10, default="#000000")
 
+  def __str__(self):
+    return self.user.username
+
 class UserDraftScorePoint(models.Model):
   draft = models.ForeignKey(UserDraft, on_delete=models.CASCADE)
   score = models.FloatField()
@@ -93,7 +96,13 @@ class UserDraftPlayer(models.Model):
 class Leaderboard(models.Model):
   name = models.CharField(max_length=70)
 
+  def __str__(self):
+    return self.name
+
 class LeaderboardMember(models.Model):
   user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
   leaderboard = models.ForeignKey(Leaderboard, on_delete=models.CASCADE)
   is_admin = models.BooleanField()
+
+  def __str__(self):
+    return self.user.username

@@ -4,6 +4,7 @@ from .scraper.score_calculator import get_player_score_sources_per_game_for_acti
 from .models import Player, UserDraft, UserDraftPlayer, PlayerScorePoint
 from django.contrib.auth import logout
 from .graphing.group_by_time import group_data_by_day
+from .helper import authorized
 
 def logout_view(request):
     logout(request)
@@ -15,6 +16,7 @@ def profile(request):
 def home(request):
     return HttpResponseRedirect("/leaderboard")
 
+@authorized
 def player_leaderboard(request):
     players = Player.objects.filter(active=True).order_by("-score").all()
     positions = ("top", "jungle", "mid", "bot", "support")
@@ -22,7 +24,7 @@ def player_leaderboard(request):
 
 GRAPH_DATA_POINTS = 10
 
-
+@authorized
 def draft(request):
     players = Player.objects.filter(active=True).order_by("-score").all()
     try:
@@ -36,7 +38,7 @@ def draft(request):
     position_players = {}
 
     for draft_player in UserDraftPlayer.objects.filter(draft=draft):
-        position_players[draft_player.player.position] = draft_player.player.player_id
+        position_players[draft_player.player.position] = draft_player.player.id
 
     for pos in positions:
         if pos not in position_players:
@@ -49,6 +51,7 @@ def draft(request):
         "error": bool(request.GET.get("error", None))
     })
 
+@authorized
 def submit_draft(request):
     if not request.user.is_authenticated:
         return HttpResponseForbidden()
@@ -89,16 +92,17 @@ def submit_draft(request):
 
     return HttpResponseRedirect("/draft")
 
+@authorized
 def player_graph(request, player_id=None):
     try:
-        player = Player.objects.get(player_id=player_id)
+        player = Player.objects.get(id=player_id)
     except:
         return HttpResponseBadRequest()
     
     game_scores = get_player_score_sources_per_game_for_active_tournament(player)
     game_names = [
-        (game.team_a.short_name, game.team_a.team_id == game.winner,
-         game.team_b.short_name, game.team_b.team_id == game.winner) for game, _ in game_scores
+        (game.team_a.short_name, game.team_a.id == game.winner,
+         game.team_b.short_name, game.team_b.id == game.winner) for game, _ in game_scores
     ]
     scores = [score for _, score in game_scores]
 

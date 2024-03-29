@@ -1,17 +1,5 @@
-from ...scraper.scrape_games import update_game_data_for_tournament
-from ...scraper.score_calculator import update_all_player_scores_for_tournament
-from ...models import Tournament
+from ...scraper.daily_updater import daily_refresh_job
 from django.core.management.base import BaseCommand
-
-def daily_refresh_job():
-  active_tournament = Tournament.objects.filter(active=True).first()
-
-  if active_tournament is None:
-    print("no active tournament")
-  else:
-    update_game_data_for_tournament(active_tournament)
-    update_all_player_scores_for_tournament(active_tournament)
-    print("updated game data")
 
 class Command(BaseCommand):
   help = "Update game data."

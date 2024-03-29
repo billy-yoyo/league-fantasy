@@ -10,25 +10,12 @@ from django_apscheduler.jobstores import DjangoJobStore
 from django_apscheduler.models import DjangoJobExecution
 from django_apscheduler import util
 
-from ...scraper.scrape_games import update_game_data_for_tournament
-from ...scraper.score_calculator import update_all_player_scores_for_tournament
-from ...models import Tournament
+from ...scraper.daily_updater import daily_refresh_job
 
 logger = logging.getLogger(__name__)
 fh = logging.FileHandler("scheduler.log")
 fh.setLevel(logging.INFO)
 logger.addHandler(fh)
-
-def daily_refresh_job():
-  try:
-    active_tournament = Tournament.objects.filter(active=True).first()
-  except:
-    logger.info("no active tournament")
-
-  update_game_data_for_tournament(active_tournament)
-  update_all_player_scores_for_tournament(active_tournament)
-  logger.info("updated game data")
-
 
 # The `close_old_connections` decorator ensures that database connections, that have become
 # unusable or are obsolete, are closed before and after your job has run. You should use it

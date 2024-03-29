@@ -8,7 +8,7 @@
         <option value="none">---</option>
         {% for player in players %}
           {% if player.position == position %}
-            <option value="{{ player.player_id }}" {% if player.player_id == draft|keyvalue:position %} selected="true" {% endif %}>{{ player.team.short_name }} {{ player.in_game_name }}</option>
+            <option value="{{ player.id }}" {% if player.id == draft|keyvalue:position %} selected="true" {% endif %}>{{ player.team.short_name }} {{ player.in_game_name }}</option>
           {% endif %}
         {% endfor %}
       </select>

@@ -4,7 +4,9 @@ from django.contrib.auth import get_user_model
 from .models import UserDraft, UserDraftPlayer, UserDraftScorePoint, Leaderboard, LeaderboardMember
 from collections import defaultdict
 from .graphing.group_by_time import group_data_by_day
+from .helper import authorized
 
+@authorized
 def create_leaderboard(request):
   name = request.POST.get("name", None)
   if name is None:
@@ -44,6 +46,7 @@ def perform_membership_action(request, leaderboard_id, action):
     
   return HttpResponseRedirect(f"/leaderboard/{leaderboard_id}/manage")
 
+@authorized
 def add_leaderboard_member(request, leaderboard_id=None):
   def create(leaderboard, user, membership):
     if membership is None:
@@ -51,6 +54,7 @@ def add_leaderboard_member(request, leaderboard_id=None):
 
   return perform_membership_action(request,leaderboard_id, create)
 
+@authorized
 def kick_leaderboard_member(request, leaderboard_id=None):
   def kick(_, __, membership):
       if membership:
@@ -58,6 +62,7 @@ def kick_leaderboard_member(request, leaderboard_id=None):
 
   return perform_membership_action(request, leaderboard_id, kick)
 
+@authorized
 def promote_leaderboard_member(request, leaderboard_id=None):
   def promote(_, __, membership):
       if membership:
@@ -66,6 +71,7 @@ def promote_leaderboard_member(request, leaderboard_id=None):
 
   return perform_membership_action(request, leaderboard_id, promote)
 
+@authorized
 def demote_leaderboard_member(request, leaderboard_id=None):
   def demote(_, user, membership):
       if membership and user.username != request.user.username:
@@ -74,6 +80,7 @@ def demote_leaderboard_member(request, leaderboard_id=None):
 
   return perform_membership_action(request, leaderboard_id, demote)
 
+@authorized
 def delete_leaderboard(request, leaderboard_id=None):
   if leaderboard_id is None:
     return HttpResponseRedirect(f"/leaderboards")
@@ -91,6 +98,7 @@ def delete_leaderboard(request, leaderboard_id=None):
   
   return HttpResponseRedirect(f"/leaderboards")
 
+@authorized
 def manage_leaderboard(request, leaderboard_id=None):
   if leaderboard_id is None:
     return HttpResponseRedirect(f"/leaderboards")
@@ -111,6 +119,7 @@ def manage_leaderboard(request, leaderboard_id=None):
     "error": bool(request.GET.get("error", None))
   })
 
+@authorized
 def all_draft_leaderboards(request):
     memberships = LeaderboardMember.objects.filter(user=request.user).all()
     leaderboards = [m.leaderboard for m in memberships]
@@ -118,6 +127,7 @@ def all_draft_leaderboards(request):
 
 GRAPH_DATA_POINTS = 10
 
+@authorized
 def draft_leaderboard(request, leaderboard_id=None):
     leaderboard = None
     if leaderboard_id is None:
@@ -146,7 +156,7 @@ def draft_leaderboard(request, leaderboard_id=None):
     for draft in drafts:
         for player in UserDraftPlayer.objects.filter(draft=draft):
             draft_players[draft.user.username][player.player.position] = f"{player.player.team.short_name} {player.player.in_game_name} ({player.player.score})"
-            draft_player_ids[draft.user.username][player.player.position] = player.player.player_id
+            draft_player_ids[draft.user.username][player.player.position] = player.player.id
             user_colours[draft.user.username] = draft.colour
         for position in positions:
             if position not in draft_players[draft.user.username]:

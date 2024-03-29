@@ -32,6 +32,12 @@ class ScoreComputer:
 
 def calculate_kda_score(position, stats):
   kda = stats.get(StatName.kda, 0)
+  deaths = stats.get(StatName.deaths, 0)
+
+  # perfect kda gives max score here
+  if deaths == 0:
+    kda = 999
+
   if position == "support":
     return 0
   else:
@@ -50,13 +56,23 @@ def calculate_kill_participation_score(position, stats):
     scores = [-5, -4, -3, -2, -1, 0, 2, 4, 6, 8, 10]
 
   kp = stats.get(StatName.kill_participation, 0)
-  return scores[math.floor(kp // 10)]
+  return scores[math.floor(kp * 10)]
 
 def calculate_multikill_score(position, stats):
   doubles = stats.get(StatName.double_kills, 0)
   triples = stats.get(StatName.triple_kills, 0)
   quadras = stats.get(StatName.quadra_kills, 0)
   pentas = stats.get(StatName.penta_kills, 0)
+
+  # we don't want to double-count
+  doubles -= pentas
+  triples -= pentas
+  quadras -= pentas
+
+  doubles -= quadras
+  triples -= quadras
+
+  doubles -= triples
 
   return doubles + (triples * 3) + (quadras * 5) + (pentas * 10)
 
@@ -66,8 +82,8 @@ def calculate_support_score(game_length_minutes, stats):
   support_score = math.floor((assists - (deaths / 2)) * 15 // game_length_minutes)
   return support_score
 
-def calculate_score_for_game(winner, position, stats):
-  game_length_minutes = stats.get(StatName.golds, 0) / stats.get(StatName.gpm, 1)
+def calculate_score_for_game(game, position, stats):
+  game_length_minutes = game.game_duration
 
   score = ScoreComputer(0)
 
@@ -82,19 +98,21 @@ def calculate_score_for_game(winner, position, stats):
 
   gold_diff_15 = stats.get(StatName.gold_diff_15, 0)
   xp_diff_15 = stats.get(StatName.xp_diff_15, 0)
-  dpm = stats.get(StatName.dpm, 0)
+  dpm = stats.get(StatName.total_damage_to_champion, 0) / game_length_minutes
   stolen_objectives = stats.get(StatName.objectives_stolen, 0)
   vision_score = stats.get(StatName.vision_score, 0)
   self_mitigated = stats.get(StatName.self_mitigated, 0)
-  damage_share = stats.get(StatName.dmg_share, 0)
+  damage_share = stats.get(StatName.dmg_share, 0) * 100
   turret_damage = stats.get(StatName.turret_damage, 0)
   lost_shutdown = stats.get(StatName.shutdown_lost, 0)
-  cspm = stats.get(StatName.csm, 0)
+  cspm = stats.get(StatName.cs, 0) / game_length_minutes
   cc_time = stats.get(StatName.cc_time_others, 0)
   damage_taken = stats.get(StatName.damage_taken, 0)
   heals = stats.get(StatName.ally_heal, 0)
   shields = stats.get(StatName.total_ally_shielded, 0)
   solo_kills = stats.get(StatName.solo_kills, 0)
+  alcove_kills = stats.get(StatName.alcove_kills, 0)
+  turret_plates = stats.get(StatName.turret_plates, 0)
 
   if gold_diff_15 > 1000:
     score.add("gd15", 3)
@@ -120,6 +138,9 @@ def calculate_score_for_game(winner, position, stats):
   if cspm >= 8:
     score.add("cspm", math.floor(cspm - 8))
 
+  if alcove_kills > 0:
+    score.add("alcove", alcove_kills)
+
   score.add("shutdown", -math.floor(lost_shutdown // 300))
   score.add("stolen", stolen_objectives * 5)
   score.add("vision", math.floor(vision_score // game_length_minutes))
@@ -128,6 +149,7 @@ def calculate_score_for_game(winner, position, stats):
   score.add("cc", math.floor(cc_time // 13))
   score.add("heals_and_shields", math.floor((heals + shields) // (50 * game_length_minutes)))
   score.add("solo_kills", solo_kills * 2)
+  score.add("turret_plates", turret_plates)
 
   return score
 
@@ -140,9 +162,9 @@ def get_player_score_sources_per_game_for_active_tournament(player):
     
     if len(stats) == 0:
       continue
-    game_score = calculate_score_for_game(game.winner == player.team.team_id, player.position, stats)
+    game_score = calculate_score_for_game(game, player.position, stats)
     game_scores.append((game, game_score))
-  return sorted(game_scores, key=lambda x: x[0].game_id)
+  return sorted(game_scores, key=lambda x: x[0].time)
 
 def update_player_score(player, tournaments, time):
   score = ScoreComputer(0)
@@ -153,7 +175,7 @@ def update_player_score(player, tournaments, time):
       stats[stat.stat_name] = stat.stat_value
     if len(stats) == 0:
       continue
-    game_score = calculate_score_for_game(game.winner == player.team.team_id, player.position, stats)
+    game_score = calculate_score_for_game(game, player.position, stats)
     score.merge(game_score)
     total_games += 1
 

@@ -1,4 +1,5 @@
 from ._base import *
+import json
 
 with open("/etc/secret.txt") as f:
   SECRET_KEY = f.read().strip()
@@ -34,3 +35,10 @@ LOGGING = {
         },
     }
 }
+
+with open("/etc/bot.json") as f:
+  bot = json.load(f)
+
+BOT_USERNAME = bot["username"]
+BOT_PASSWORD = bot["password"]
+
