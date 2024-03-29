@@ -1,6 +1,5 @@
 from django.conf import settings
 from mwclient import Site
-import wikitextparser as wtp
 import json
 from .cargo_client import CargoClient
 
