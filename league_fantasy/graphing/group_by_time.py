@@ -3,7 +3,6 @@ def group_data_by_day(datapoint_source, max_days, get_id, get_score=lambda x: x.
     days = []
     ids = set()
     for datapoint in datapoint_source:
-        print(datapoint)
         time = get_time(datapoint)
         if not days or days[-1][0] != time.date():
             if len(days) >= max_days:
@@ -15,7 +14,6 @@ def group_data_by_day(datapoint_source, max_days, get_id, get_score=lambda x: x.
         ids.add(id)
         if id not in day_data:
             day_data[id] = get_score(datapoint)
-    print(days)
 
     days = days[::-1]
 
