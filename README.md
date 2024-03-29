@@ -8,7 +8,7 @@ Requires the following python packages:
 * beautifulsoup4
 * lxml
 * django-apscheduler
-* mwrogue
+* mwclient
 
 ## Setup
 
