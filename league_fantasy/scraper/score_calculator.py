@@ -1,4 +1,4 @@
-from ..models import Player, Tournament, PlayerStat, Game, UserDraft, UserDraftPlayer, UserDraftScorePoint, PlayerScorePoint
+from ..models import Player, Tournament, PlayerStat, Game, UserDraft, UserDraftPlayer, UserDraftScorePoint, PlayerScorePoint, GamePlayer
 from .stats import StatName
 import math
 from collections import defaultdict
@@ -162,7 +162,11 @@ def get_player_score_sources_per_game_for_active_tournament(player):
     
     if len(stats) == 0:
       continue
-    game_score = calculate_score_for_game(game, player.position, stats)
+    game_player = GamePlayer.objects.filter(game=game, player=player).first()
+    position = player.position
+    if game_player:
+      position = game_player.position
+    game_score = calculate_score_for_game(game, position, stats)
     game_scores.append((game, game_score))
   return sorted(game_scores, key=lambda x: x[0].time)
 
@@ -175,7 +179,11 @@ def update_player_score(player, tournaments, time):
       stats[stat.stat_name] = stat.stat_value
     if len(stats) == 0:
       continue
-    game_score = calculate_score_for_game(game, player.position, stats)
+    game_player = GamePlayer.objects.filter(game=game, player=player).first()
+    position = player.position
+    if game_player:
+      position = game_player.position
+    game_score = calculate_score_for_game(game, position, stats)
     score.merge(game_score)
     total_games += 1
 

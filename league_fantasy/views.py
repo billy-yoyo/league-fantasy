@@ -1,10 +1,11 @@
-from django.http import HttpResponse, HttpResponseRedirect, HttpResponseBadRequest, HttpResponseForbidden
+from django.http import HttpResponse, HttpResponseRedirect, HttpResponseBadRequest, HttpResponseForbidden, HttpResponseNotFound
 from django.shortcuts import render
 from .scraper.score_calculator import get_player_score_sources_per_game_for_active_tournament
-from .models import Player, UserDraft, UserDraftPlayer, PlayerScorePoint
+from .models import Player, UserDraft, UserDraftPlayer, PlayerScorePoint, Game, GamePlayer, PlayerStat
 from django.contrib.auth import logout
 from .graphing.group_by_time import group_data_by_day
 from .helper import authorized
+from collections import defaultdict
 
 def logout_view(request):
     logout(request)
@@ -71,7 +72,7 @@ def submit_draft(request):
     if any(p is None or p == "none" for p in player_ids):
         return HttpResponseRedirect("/draft?error=true") 
 
-    players = Player.objects.filter(player_id__in=player_ids).all()
+    players = Player.objects.filter(id__in=player_ids).all()
 
     score = 0
     for player in players:
@@ -102,7 +103,7 @@ def player_graph(request, player_id=None):
     game_scores = get_player_score_sources_per_game_for_active_tournament(player)
     game_names = [
         (game.team_a.short_name, game.team_a.id == game.winner,
-         game.team_b.short_name, game.team_b.id == game.winner) for game, _ in game_scores
+         game.team_b.short_name, game.team_b.id == game.winner, game.id) for game, _ in game_scores
     ]
     scores = [score for _, score in game_scores]
 
@@ -146,4 +147,42 @@ def player_graph(request, player_id=None):
         "colspan": len(game_names) + 1
     })
 
+
+POSITION_ORDER = ["top", "jungle", "mid", "bot", "support"]
+
+@authorized
+def game_page(request, game_id=None):
+    game = Game.objects.filter(id=game_id).first()
+    if not game:
+        return HttpResponseNotFound()
+    
+    game_players = GamePlayer.objects.filter(game=game)
+    player_stats = PlayerStat.objects.filter(game=game)
+    scores = defaultdict(dict)
+    team_players = {
+        game.team_a.id: [],
+        game.team_b.id: []
+    }
+
+    game_player_map = {}
+    for game_player in game_players:
+        game_player_map[game_player.player.id] = game_player
+        team_players[game_player.team.id].append(game_player)
+    
+    sort_key = lambda gp: (POSITION_ORDER.index(gp.position), gp.player.in_game_name)
+    players = sorted(team_players[game.team_a.id], key=sort_key) + sorted(team_players[game.team_b.id], key=sort_key)
+
+    for stat in player_stats:
+        scores[stat.player.id][stat.stat_name] = stat.stat_value
+
+    stat_sources = set([stat.stat_name for stat in player_stats])
+    stat_sources = list(sorted(stat_sources))
+    stat_sources = [(source, source.replace("_", " ").title()) for source in stat_sources]
+    
+    return render(request, "game_page.html", {
+        "game": game,
+        "players": players,
+        "sources": stat_sources,
+        "scores": scores
+    })
 

@@ -214,6 +214,7 @@ h1.player-title .player-position {
 .scrollable-table {
   overflow-x: auto;
   margin-bottom: 10px;
+  max-width:80vw;
 }
 
 .scrollable-table table tr th.fix {
@@ -222,12 +223,25 @@ h1.player-title .player-position {
   background-color: #0a1a2a;;
 }
 
+.game-name-th {
+  padding: 0;
+}
+
 .game-name-col {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   font-weight: normal;
+  text-decoration: none;
+  width: 100%;
+  height: 100%;
+  padding: 8px 14px;
+  box-sizing: border-box;
+}
+
+.game-name-col:hover {
+  background-color: #234;
 }
 
 .winner {
@@ -328,4 +342,50 @@ ul {
 
 .space-filler {
   flex: 1;
+}
+
+.game-team {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+}
+
+.vs-filler {
+  margin-left: 50px;
+  margin-right: 55px;
+}
+
+.team-name-with-result {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  margin-left: 10px;
+  margin-top: 5px;
+}
+
+.team-result {
+  font-size: 0.75rem;
+  font-weight: normal;
+  margin-left: 10px;
+}
+
+.game-row {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+}
+
+.nopad {
+  padding: 0;
+}
+
+.centered {
+  padding: 8px 14px;
+  display: flex;
+  box-sizing: border-box;
+  justify-content: center;
+  align-items: center;
 }

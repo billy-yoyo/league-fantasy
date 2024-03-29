@@ -1,0 +1,83 @@
+{% load static %}
+
+<h1>
+  <div class="game-row">
+    <div class="game-team">
+      <img class="team-icon" src="{% static game.team_a.icon_url %}" style="background-color: {{ game.team_a.background_colour }};" width="30" height="30"></img>
+      <div class="team-name-with-result">
+        <span>{{ game.team_a.full_name }}</span>
+        <span class="team-result">
+          {% if game.winner == game.team_a.id %}
+            (WIN)
+          {% else %}
+            (LOSS)
+          {% endif %}
+        </span>
+      </div>
+    </div>
+    <div class="vs-filler">
+      VS
+    </div>
+    <div class="game-team">
+      <img class="team-icon" src="{% static game.team_b.icon_url %}" style="background-color: {{ game.team_b.background_colour }};" width="30" height="30"></img>
+      <div class="team-name-with-result">
+        <span>{{ game.team_b.full_name }}</span>
+        <span class="team-result">
+          {% if game.winner == game.team_b.id %}
+            (WIN)
+          {% else %}
+            (LOSS)
+          {% endif %}
+        </span>
+      </div>
+    </div>
+  </div>
+</h1>
+
+<div class="scrollable-table">
+  <table>
+    <thead>
+      <tr>
+        <th scope="col"></th>
+        {% for player in players %}
+          <th scope="col" class="nopad">
+            <a class="centered" href="/players/{{ player.player.id }}">
+              {{ player.player.in_game_name }}
+            </a>
+          </th>
+        {% endfor %}
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <th class="fix" scope="row">Team</th>
+        {% for player in players %}
+          <td class="nopad">
+            <div class="centered">
+              <img src="{% static player.team.icon_url %}" width="20" height="20"></img>
+            </div>
+          </td>
+        {% endfor %}
+      </tr>
+      <tr>
+        <th class="fix" scope="row">Role</th>
+        {% for player in players %}
+          <td class="nopad">
+            <div class="centered">
+              <img src="{% static 'positions/'|add:player.position|add:'.png' %}" width="20" height="20"></img>
+            </div>
+          </td>
+        {% endfor %}
+      </tr>
+      {% for stat_source in sources %}
+        <tr>
+          <th class="fix" scope="row"> {{ stat_source.1 }} </th>
+          {% for player in players %}
+            <td>{% if scores|keyvalue:player.player.id|keyvalue:stat_source.0 is not None %} {{ scores|keyvalue:player.player.id|keyvalue:stat_source.0|toint }} {% else %} 0 {% endif %}</td>
+          {% endfor %}
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+

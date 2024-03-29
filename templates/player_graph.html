@@ -17,12 +17,12 @@
       <tr>
         <th scope="col"></th>
         {% for game_name in game_names %}
-          <th scope="col"> 
-            <div class="game-name-col">
+          <th scope="col" class="game-name-th"> 
+            <a href="/game/{{ game_name.4 }}" class="game-name-col">
               <div {% if game_name.1 %} class="winner" {% endif %}>{{ game_name.0 }}</div>
               <div class="vs">vs</div>
               <div {% if game_name.3 %} class="winner" {% endif %}>{{ game_name.2 }}</div>
-            </div>
+            </a>
           </th>
         {% endfor %}
         <th scope="col">Total</th>

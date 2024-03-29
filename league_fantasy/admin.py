@@ -31,10 +31,10 @@ class SeasonAdmin(admin.ModelAdmin):
   list_display = ["name"]
 
 class TeamAdmin(admin.ModelAdmin):
-  list_display = ["short_name", "full_name"]
+  list_display = ["id", "short_name", "full_name"]
 
 class PlayerAdmin(admin.ModelAdmin):
-  list_display = ["in_game_name", "score", "team", "position", "active"]
+  list_display = ["id", "in_game_name", "score", "team", "position", "active"]
 
 class PlayerSynonymAdmin(admin.ModelAdmin):
   list_display = ["name", "player"]
@@ -43,13 +43,13 @@ class GameAdmin(admin.ModelAdmin):
   actions = [
     update_game_statistics
   ]
-  list_display = ["rpgid", "team_a", "team_b", "winner", "time", "tournament", "statistics_loaded"]
+  list_display = ["id", "rpgid", "team_a", "team_b", "winner", "time", "tournament", "statistics_loaded"]
 
 class UserDraftAdmin(admin.ModelAdmin):
   list_display = ["user", "score"]
 
 class LeaderboardAdmin(admin.ModelAdmin):
-  list_display = ["name"]
+  list_display = ["id", "name"]
 
 class LeaderboardMemberAdmin(admin.ModelAdmin):
   list_display = ["user", "leaderboard", "is_admin"]
