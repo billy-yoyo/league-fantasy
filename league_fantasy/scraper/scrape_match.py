@@ -1,7 +1,4 @@
-import requests
-from bs4 import BeautifulSoup
 from ..models import Game, Player, PlayerStat
-import json
 from .stats import STAT_MATCHERS, StatName
 from collections import defaultdict
 from .esclient import esclient

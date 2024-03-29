@@ -4,8 +4,6 @@
 Requires the following python packages:
 
 * django
-* requests
-* beautifulsoup4
 * lxml
 * django-apscheduler
 * mwclient

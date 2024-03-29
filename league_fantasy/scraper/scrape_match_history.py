@@ -1,9 +1,8 @@
-import requests
-from bs4 import BeautifulSoup
 from datetime import datetime
-from ..models import Team, Game
+from ..models import Team, Game, Player
+from .esclient import esclient
 
-MATCH_UTC_FORMAT = "%a %Y-%m-%d %H:%M"
+MATCH_UTC_FORMAT = "%Y-%m-%d %H:%M:%S"
 
 MATCH_ROW_REQUIRED_FIELDS = [
   "team1",
@@ -29,60 +28,84 @@ def get_or_create_team(full_name, short_name):
     team.save()
   return team
 
+def get_or_create_player(team, in_game_name, position):
+  player = Player.objects.filter(in_game_name__iexact=in_game_name).first()
+  if not player:
+    player = Player(
+      team=team,
+      in_game_name=in_game_name,
+      position=position,
+      active=True
+    )
+    player.save()
+  else:
+    player.active = True
+    player.save()
+  return player
+
+POSITIONS = ["top", "jungle", "mid", "bot", "support"]
+
+def get_team_player_and_positions(team_data):
+  roster = team_data["RosterLinks"].split(";;")
+  roles = team_data["Roles"].split(";;")
+  if len(roster) != len(roles):
+    print(f"Invalid roster for team {team_data['Short']}")
+  
+  player_positions = []
+  for player, role_string in zip(roster, roles):
+    position = role_string.split(",")[0].lower()
+    if position not in POSITIONS:
+      continue
+    player_positions.append((player, position))
+  return player_positions
+
 def scrape_match_list(tournament):
   tournament_name = tournament.name
   season_name = tournament.season.name
 
   games = []
 
-  resp = requests.get(f"https://lol.fandom.com/wiki/Data:LEC/{season_name}/{tournament_name}")
-  print(resp.text)
-  soup = BeautifulSoup(resp.text, "lxml")
-  current_headers = []
-  cached_entries = []
-  cache_duration = 0
-  for row in soup.select(".page-content table.wikitable tr"):
-    headers = row.find_all("th")
-    if len(headers) > 1:
-      current_headers = [th.get_text().strip().lower() for th in headers]
-      continue
-    elif len(headers) == 1:
-      continue
+  data = esclient.get_match_history(season_name, tournament_name)
 
-    entries = row.find_all("td")
-    if cache_duration > 0:
-      entries = cached_entries + list(entries)
-      cached_entries -= 1
+  team_overview_pages = set()
+  tournament_official_name = None
+  for match in data:
+    tournament_official_name = match["Name"]
+    team_overview_pages.add(match["Team1"])
+    team_overview_pages.add(match["Team2"])
+  
+  cached_teams = {}
 
-    if len(current_headers) != len(entries):
-      print(f"skipping row, headers and entries didn't match: {row}")
-      continue
+  team_data_results = esclient.get_team_data(tournament_official_name, team_overview_pages)
+  roster_data = {}
 
-    first_entry_rowspan = entries[0].get("rowspan")
-    if first_entry_rowspan and is_int(first_entry_rowspan):
-      rowspan = int(first_entry_rowspan)
-      if rowspan > 1:
-        cached_entries = [entry for entry in entries if entry.get("rowspan")]
-        cache_duration = rowspan - 1
+  for team_data in team_data_results:
+    team_shortname = team_data["Short"]
+    team_fullname = team_data["Name"]
+    team_roster = get_team_player_and_positions(team_data)
 
-    data = {}
-    for header, entry in zip(current_headers, entries):
-      data[header] = entry
+    team = get_or_create_team(team_fullname, team_shortname)
+    for player, position in team_roster:
+      roster_data[player] = (team, position)
     
-    missing_fields = [field for field in MATCH_ROW_REQUIRED_FIELDS if field not in data]
-    if missing_fields:
-      print(f"skipping row, missing fields {missing_fields}: {row}")
-      continue
+    cached_teams[team_data["OverviewPage"]] = team
 
-    team_a_fullname = data["team1"].get_text().strip()
-    team_b_fullname = data["team2"].get_text().strip()
-    team_a_shortname = data["blue"].get_text().strip()
-    team_b_shortname = data["red"].get_text().strip()
-    result = data["result"].get_text().strip().split("-")
-    result_left = int(result[0].strip())
-    result_right = int(result[1].strip())
+  player_data_results = esclient.get_player_data(roster_data.keys())
+  for player_data in player_data_results:
+    official_name = player_data["Player"]
+    in_game_name = player_data["ID"]
+    team, position = roster_data[official_name]
+    get_or_create_player(team, in_game_name, position)
 
-    time_string = data["utc"].get_text().strip()
+  for match in data:
+    tournament_official_name = match["Name"]
+
+    team_a = cached_teams[match["Team1"]]
+    team_b = cached_teams[match["Team2"]]
+
+    winner_index = int(match["Winner"])
+
+    time_string = match["DateTime UTC"]
 
     try:
       time = datetime.strptime(time_string, MATCH_UTC_FORMAT)
@@ -90,10 +113,8 @@ def scrape_match_list(tournament):
       print(f"skipping row, failed to parse time string: {time_string}")
       continue
       
-    rpgid = data["rpgid"].get_text().strip()
-    team_a = get_or_create_team(team_a_fullname, team_a_shortname)
-    team_b = get_or_create_team(team_b_fullname, team_b_shortname)
-    if result_left > result_right:
+    rpgid = match["RiotPlatformGameId"]
+    if winner_index == 1:
       winner = team_a.id
     else:
       winner = team_b.id
