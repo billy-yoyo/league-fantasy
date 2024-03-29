@@ -36,6 +36,7 @@ def scrape_match_list(tournament):
   games = []
 
   resp = requests.get(f"https://lol.fandom.com/wiki/Data:LEC/{season_name}/{tournament_name}")
+  print(resp.text)
   soup = BeautifulSoup(resp.text, "lxml")
   current_headers = []
   cached_entries = []
@@ -116,7 +117,7 @@ def scrape_match_list(tournament):
       game.tournament = tournament
       game.time = time
       game.rpgid  = rpgid
-      game.save()
+      game.save
     
     games.append(game)
   return games
