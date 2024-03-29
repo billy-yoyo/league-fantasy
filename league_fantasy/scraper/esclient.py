@@ -1,9 +1,12 @@
+
+
 from django.conf import settings
 from mwclient import Site
 import json
 from .cargo_client import CargoClient
 
-# This is copied from https://github.com/RheingoldRiver/mwcleric/blob/master/mwcleric/clients/session_manager.py
+# Copyright (c) 2018-2021 Megan Cutrofello 
+# Part of this is copied from https://github.com/RheingoldRiver/mwcleric/blob/master/mwcleric/clients/session_manager.py
 # We're recreating the lol client because installing mwrogue wasn't working on ubuntu inside a venv for some reason
 
 class AuthCredentials(object):
