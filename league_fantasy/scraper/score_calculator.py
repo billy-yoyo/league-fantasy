@@ -155,7 +155,7 @@ def calculate_score_for_game(game, position, stats):
 
 def get_player_score_sources_per_game_for_active_tournament(player):
   game_scores = []
-  for game in Game.objects.filter(tournament__active=True):
+  for game in Game.objects.filter(tournament__active=True).order_by("time"):
     stats = {}
     for stat in PlayerStat.objects.filter(game=game).filter(player=player):
       stats[stat.stat_name] = stat.stat_value
