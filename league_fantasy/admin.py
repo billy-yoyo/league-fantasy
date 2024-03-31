@@ -1,8 +1,9 @@
 from django.contrib import admin
-from .models import Tournament, Season, Team, Player, Game, UserDraft, Leaderboard, LeaderboardMember, PlayerSynonym
+from .models import Tournament, Season, Team, Player, Game, UserDraft, UserDraftPlayer, Leaderboard, LeaderboardMember, PlayerSynonym
 from .scraper.scrape_match_history import scrape_match_list
 from .scraper.scrape_match import scrape_match
 from .scraper.score_calculator import update_all_player_scores_for_tournament
+from .scraper.daily_updater import daily_refresh_job_for_tournament
 
 @admin.action(description="Update match list")
 def update_tournament_match_list(modeladmin, request, queryset):
@@ -14,6 +15,10 @@ def recalculate_scores_for_tournament(modeladmin, request, queryset):
   for tournament in queryset:
     update_all_player_scores_for_tournament(tournament)
 
+@admin.action(description="Post-Game Refresh")
+def post_game_refresh(modeladmin, request, queryset):
+  for tournament in queryset:
+    daily_refresh_job_for_tournament(tournament)
 
 @admin.action(description="Update game statistics")
 def update_game_statistics(modeladmin, request, queryset):
@@ -23,7 +28,8 @@ def update_game_statistics(modeladmin, request, queryset):
 class TournamentAdmin(admin.ModelAdmin):
   actions = [
     update_tournament_match_list,
-    recalculate_scores_for_tournament
+    recalculate_scores_for_tournament,
+    post_game_refresh
   ]
   list_display = ["name", "season", "active"]
 
@@ -48,6 +54,9 @@ class GameAdmin(admin.ModelAdmin):
 class UserDraftAdmin(admin.ModelAdmin):
   list_display = ["user", "score"]
 
+class UserDraftPlayerAdmin(admin.ModelAdmin):
+  list_display = ["draft", "player"]
+
 class LeaderboardAdmin(admin.ModelAdmin):
   list_display = ["id", "name"]
 
@@ -62,5 +71,6 @@ admin.site.register(Player, PlayerAdmin)
 admin.site.register(PlayerSynonym, PlayerSynonymAdmin)
 admin.site.register(Game, GameAdmin)
 admin.site.register(UserDraft, UserDraftAdmin)
+admin.site.register(UserDraftPlayer, UserDraftPlayerAdmin)
 admin.site.register(Leaderboard, LeaderboardAdmin)
 admin.site.register(LeaderboardMember, LeaderboardMemberAdmin)
