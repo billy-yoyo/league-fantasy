@@ -1,3 +1,4 @@
+import math
 
 class StatName:
   level = "level"
@@ -46,6 +47,18 @@ class StatName:
   cs_neutral_minions = "cs_neutral_minions"
   alcove_kills = "alcove_kills"
   turret_plates = "turret_plates"
+  pick_with_ally = "pick_with_ally"
+  first_blood = "first_blood"
+  control_ward_pct = "control_ward_pct"
+  knock_into_team_and_kill = "knock_into_team_and_kill"
+  baron_kill = "baron_kill"
+  early_dragon = "early_dragon"
+  epic_monster_secured = "epic_monster_secured"
+  takedown_all_lanes_early = "takedown_all_lanes_early"
+  save_ally = "save_ally"
+  immobilise_and_kill = "immobilise_and_kill"
+  only_death_in_teamfight_win = "only_death_in_teamfight_win"
+  immobilisations = "immobilisations"
 
 def create_stat_matcher(matcher_string):
   parts = matcher_string.split(".")
@@ -58,12 +71,16 @@ def create_stat_matcher(matcher_string):
   return matcher
 
 class Stat:
-  def __init__(self, name, matcher):
+  def __init__(self, name, matcher, transformer=None):
     self.name = name
     self.matcher = create_stat_matcher(matcher)
+    self.transformer = transformer
 
   def get_value(self, obj):
-    return self.matcher(obj) or 0
+    value = self.matcher(obj) or 0
+    if self.transformer:
+      value = self.transformer(value)
+    return value
 
 # The following stats are found via the timeline:
 #   gold_diff_15
@@ -73,6 +90,8 @@ class Stat:
 #   shutdown_collected
 #   shutdown_lost
 #   cs
+#   only_death_in_teamfight_win
+# And first_blood is calculated manually from the data (kill or assist)
 
 STAT_MATCHERS = [
   Stat(StatName.level, "champLevel"),
@@ -113,5 +132,16 @@ STAT_MATCHERS = [
   Stat(StatName.consumables_purchased, "consumablesPurchased"),
   Stat(StatName.items_purchased, "itemsPurchased"),
   Stat(StatName.alcove_kills, "challenges.takedownsInAlcove"),
-  Stat(StatName.turret_plates, "challenges.turretPlatesTaken")
+  Stat(StatName.turret_plates, "challenges.turretPlatesTaken"),
+  Stat(StatName.pick_with_ally, "challenges.pickKillWithAlly"),
+  Stat(StatName.first_blood, "challenges.pickKillWithAlly"),
+  Stat(StatName.control_ward_pct, "challenges.controlWardTimeCoverageInRiverOrEnemyHalf"),
+  Stat(StatName.knock_into_team_and_kill, "challenges.knockEnemyIntoTeamAndKill"),
+  Stat(StatName.baron_kill, "challenges.baronTakedowns"),
+  Stat(StatName.early_dragon, "challenges.earliestDragonTakedown", lambda x: max(math.floor((480 - x) / 60), 0) if x > 0 else 0),
+  Stat(StatName.epic_monster_secured, "challenges.epicMonsterKillsNearEnemyJungler"),
+  Stat(StatName.takedown_all_lanes_early, "challenges.getTakedownsInAllLanesEarlyJungleAsLaner"),
+  Stat(StatName.save_ally, "challenges.saveAllyFromDeath"),
+  Stat(StatName.immobilise_and_kill, "challenges.immobilizeAndKillWithAlly"),
+  Stat(StatName.immobilisations, "challenges.enemyChampionImmobilizations")
 ]

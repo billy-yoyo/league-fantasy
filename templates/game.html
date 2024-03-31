@@ -73,7 +73,7 @@
         <tr>
           <th class="fix" scope="row"> {{ stat_source.1 }} </th>
           {% for player in players %}
-            <td>{% if scores|keyvalue:player.player.id|keyvalue:stat_source.0 is not None %} {{ scores|keyvalue:player.player.id|keyvalue:stat_source.0|toint }} {% else %} 0 {% endif %}</td>
+            <td>{% if scores|keyvalue:player.player.id|keyvalue:stat_source.0 is not None %} {{ scores|keyvalue:player.player.id|keyvalue:stat_source.0|asdecimal }} {% else %} 0 {% endif %}</td>
           {% endfor %}
         </tr>
       {% endfor %}

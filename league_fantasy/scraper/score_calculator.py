@@ -1,34 +1,8 @@
 from ..models import Player, Tournament, PlayerStat, Game, UserDraft, UserDraftPlayer, UserDraftScorePoint, PlayerScorePoint, GamePlayer
-from .stats import StatName
-import math
-from collections import defaultdict
+from .statistics.stats import StatName
 from datetime import datetime
-
-class ScoreComputer:
-  def __init__(self, score):
-    self.score = score
-    self.score_sources = defaultdict(int)
-  
-  def get(self, source):
-    return self.score_sources.get(source, 0)
-
-  def add(self, name, value):
-    self.score += value
-    self.score_sources[name] += value
-
-  def merge(self, score):
-    self.score += score.score
-    for name, value in score.score_sources.items():
-      self.score_sources[name] += value
-
-  def summary(self, name):
-    lines = [f"Score for {name} was {self.score}:"]
-    for name, value in sorted(self.score_sources.items()):
-      lines.append(f"    {name}: {value}")
-    return "\n".join(lines)
-  
-  def __contains__(self, item):
-    return item in self.score_sources
+from .score_computer import ScoreComputer
+import math
 
 def calculate_kda_score(position, stats):
   kda = stats.get(StatName.kda, 0)
