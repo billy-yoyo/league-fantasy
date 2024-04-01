@@ -59,6 +59,7 @@ class StatName:
   immobilise_and_kill = "immobilise_and_kill"
   only_death_in_teamfight_win = "only_death_in_teamfight_win"
   immobilisations = "immobilisations"
+  take_heavy_damage_survive = "take_heavy_damage_survive"
 
 def create_stat_matcher(matcher_string):
   parts = matcher_string.split(".")
@@ -138,10 +139,11 @@ STAT_MATCHERS = [
   Stat(StatName.control_ward_pct, "challenges.controlWardTimeCoverageInRiverOrEnemyHalf"),
   Stat(StatName.knock_into_team_and_kill, "challenges.knockEnemyIntoTeamAndKill"),
   Stat(StatName.baron_kill, "challenges.baronTakedowns"),
-  Stat(StatName.early_dragon, "challenges.earliestDragonTakedown", lambda x: max(math.floor((480 - x) / 60), 0) if x > 0 else 0),
+  Stat(StatName.early_dragon, "challenges.earliestDragonTakedown"),
   Stat(StatName.epic_monster_secured, "challenges.epicMonsterKillsNearEnemyJungler"),
   Stat(StatName.takedown_all_lanes_early, "challenges.getTakedownsInAllLanesEarlyJungleAsLaner"),
   Stat(StatName.save_ally, "challenges.saveAllyFromDeath"),
   Stat(StatName.immobilise_and_kill, "challenges.immobilizeAndKillWithAlly"),
-  Stat(StatName.immobilisations, "challenges.enemyChampionImmobilizations")
+  Stat(StatName.immobilisations, "challenges.enemyChampionImmobilizations"),
+  Stat(StatName.take_heavy_damage_survive, "challenges.tookLargeDamageSurvived")
 ]

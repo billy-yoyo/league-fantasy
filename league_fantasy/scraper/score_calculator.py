@@ -3,6 +3,7 @@ from .statistics.stats import StatName
 from datetime import datetime
 from .score_computer import ScoreComputer
 import math
+from collections import defaultdict
 
 def calculate_kda_score(position, stats):
   kda = stats.get(StatName.kda, 0)
@@ -130,7 +131,7 @@ def calculate_score_for_game(game, position, stats):
 def get_player_score_sources_per_game_for_active_tournament(player):
   game_scores = []
   for game in Game.objects.filter(tournament__active=True).order_by("time"):
-    stats = {}
+    stats = defaultdict(int)
     for stat in PlayerStat.objects.filter(game=game).filter(player=player):
       stats[stat.stat_name] = stat.stat_value
     
@@ -148,7 +149,7 @@ def update_player_score(player, tournaments, time):
   score = ScoreComputer(0)
   total_games = 0
   for game in Game.objects.filter(tournament__in=tournaments):
-    stats = {}
+    stats = defaultdict(int)
     for stat in PlayerStat.objects.filter(game=game).filter(player=player):
       stats[stat.stat_name] = stat.stat_value
     if len(stats) == 0:
