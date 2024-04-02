@@ -2,7 +2,7 @@ from .stats import StatName
 from ..score_computer import ScoreComputer
 import math
 
-def calculate_lane_performance(duration, stats, score):
+def calculate_lane_performance(position, duration, stats, score):
   solo_kills = stats.get(StatName.solo_kills)
   pick_with_ally = stats.get(StatName.pick_with_ally)
   gd15 = stats.get(StatName.gold_diff_15)
@@ -11,7 +11,11 @@ def calculate_lane_performance(duration, stats, score):
   first_blood = stats.get(StatName.first_blood)
 
   score.add("solo kill", solo_kills)
-  score.add("pick with ally", math.floor(pick_with_ally / 5))
+
+  if position == "mid":
+    score.add("pick with ally", math.floor(pick_with_ally / 3))
+  else:
+    score.add("pick with ally", math.floor(pick_with_ally / 5))
 
   if gd15 > 1000:
     score.add("gd15", 3)
@@ -38,7 +42,10 @@ def calculate_objectives(duration, stats, score):
   objectives_stolen = stats.get(StatName.objectives_stolen)
 
   score.add("vision", math.floor(vision_score_pm))
-  score.add("turret damage", math.floor(turret_damage / 2000))
+  
+  if turret_damage > 5000:
+    score.add("turret", math.floor((turret_damage - 5000) // 1000))
+
   score.add("turret plates", turret_plates)
 
   if control_ward_pct > 0.6:
@@ -48,21 +55,30 @@ def calculate_objectives(duration, stats, score):
   score.add("objectives stolen", objectives_stolen * 3)
 
 
-def calculate_teamfights(duration, stats, score):
+def calculate_teamfights(position, duration, stats, score):
   damage_taken_pm = stats.get(StatName.damage_taken) / duration
   self_mitigated_pm = stats.get(StatName.self_mitigated) / duration
   heal_shield_pm = (stats.get(StatName.ally_heal) + stats.get(StatName.total_ally_shielded)) / duration
   dpm = stats.get(StatName.total_damage_to_champion) / duration
   immobilisations = stats.get(StatName.immobilisations)
+  immobilise_and_kill = stats.get(StatName.immobilise_and_kill)
+  knock_into_team_and_kill = stats.get(StatName.knock_into_team_and_kill)
 
   score.add("damage taken", math.floor(damage_taken_pm / 666))
   score.add("self mitigated", math.floor(self_mitigated_pm / 666))
   score.add("heals and shields", math.floor(heal_shield_pm / 50))
+  score.add("knock into team & kill", math.floor(knock_into_team_and_kill / 3))
+  score.add("immobilize & kill", math.floor(immobilise_and_kill / 5))
   
-  if dpm >= 400:
-    score.add("dpm", math.floor(dpm // 200) - 1)
-  elif dpm < 200:
-    score.add("dpm", -1)
+  if position != "support":
+    if dpm >= 600:
+      dpm_value = math.floor(dpm // 100) - 5
+      if position == "mid":
+        score.add("dpm", dpm_value * 2)
+      else:
+        score.add("dpm", dpm_value)
+    elif dpm < 200:
+      score.add("dpm", -1)
 
   score.add("immobilisations", math.floor(immobilisations / 20))
 
@@ -110,13 +126,11 @@ def calculate_multikill_score(stats):
 
 def calculate_montage(stats, score):
   alcove_kills = stats.get(StatName.alcove_kills)
-  knock_into_team_and_kill = stats.get(StatName.knock_into_team_and_kill)
   heavy_damage_survive = stats.get(StatName.take_heavy_damage_survive)
 
   calculate_multikill_score(stats)
 
   score.add("alcove kills", alcove_kills)
-  score.add("knock into team & kill", math.floor(knock_into_team_and_kill / 3))
   score.add("heavy damage & survive", heavy_damage_survive * 2)
 
 
@@ -142,12 +156,10 @@ def calculate_jungle(stats, score):
 def calculate_support(stats, score):
   save_ally = stats.get(StatName.save_ally)
   only_death_in_teamfight_win = stats.get(StatName.only_death_in_teamfight_win)
-  immobilise_and_kill = stats.get(StatName.immobilise_and_kill)
   kp = stats.get(StatName.kill_participation)
 
   score.add("save ally", save_ally)
   score.add("only death in teamfight win", only_death_in_teamfight_win)
-  score.add("immobilize & kill", math.floor(immobilise_and_kill / 5))
   
   if kp >= 0.9:
     score.add("kp", 2)
@@ -161,9 +173,9 @@ def calculate_score(game, position, stats):
 
   score.add("games", -10)
 
-  calculate_lane_performance(duration, stats, score)
+  calculate_lane_performance(position, duration, stats, score)
   calculate_objectives(duration, stats, score)
-  calculate_teamfights(duration, stats, score)
+  calculate_teamfights(position, duration, stats, score)
   calculate_scoreline(position, stats, score)
   calculate_montage(stats, score)
 
