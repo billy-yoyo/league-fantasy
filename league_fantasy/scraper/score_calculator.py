@@ -2,6 +2,7 @@ from ..models import Player, Tournament, PlayerStat, Game, UserDraft, UserDraftP
 from .statistics.stats import StatName
 from datetime import datetime
 from .score_computer import ScoreComputer
+from .statistics.new_score_calculator import calculate_score as new_calculate_score
 import math
 from collections import defaultdict
 
@@ -142,6 +143,7 @@ def get_player_score_sources_per_game_for_active_tournament(player):
     if game_player:
       position = game_player.position
     game_score = calculate_score_for_game(game, position, stats)
+    #game_score = new_calculate_score(game, position, stats)
     game_scores.append((game, game_score))
   return sorted(game_scores, key=lambda x: x[0].time)
 
@@ -159,6 +161,7 @@ def update_player_score(player, tournaments, time):
     if game_player:
       position = game_player.position
     game_score = calculate_score_for_game(game, position, stats)
+    #game_score = new_calculate_score(game, position, stats)
     score.merge(game_score)
     total_games += 1
 
