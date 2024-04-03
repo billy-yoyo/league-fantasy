@@ -33,6 +33,7 @@ urlpatterns = [
     path("submit-draft/", views.submit_draft),
     path("logout/", views.logout_view),
     path("accounts/profile/", views.profile),
+    path("stat/<slug:stat_source>", views.stats_page),
     path("game/<int:game_id>", views.game_page),
     path("leaderboard/", leaderboard_views.draft_leaderboard),
     path("leaderboards/", leaderboard_views.all_draft_leaderboards),

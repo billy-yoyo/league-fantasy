@@ -30,7 +30,11 @@
     </thead>
     {% for stat_source in sources %}
       <tr>
-        <th class="fix" scope="row"> {{ stat_source.1 }} </th>
+        <th class="game-name-th" scope="row">
+          <a href="/stat/{{ stat_source.0 }}" class="game-name-col">
+            {{ stat_source.1 }}
+          </a>
+        </th>
         {% for score in scores %}
           <td>{% if score|keyvalue:stat_source.0 is not None %} {{ score|keyvalue:stat_source.0|toint }} {% else %} 0 {% endif %}</td>
         {% endfor %}
@@ -38,7 +42,14 @@
       </tr>
     {% endfor %}
     <tr>
-      <td class="empty-table" colspan="{{ colspan }}"></td>
+      <th class="game-name-th" scope="row">
+        <a href="/stat/total" class="game-name-col">
+          Total
+        </a>
+      </th>
+      {% for score in scores %}
+        <td>{{ score.score }}</td>
+      {% endfor %}
       <td>{{ player.score }}</td>
     </tr>
   </table>

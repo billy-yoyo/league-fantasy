@@ -1,9 +1,11 @@
 from django.http import HttpResponse, HttpResponseRedirect, HttpResponseBadRequest, HttpResponseForbidden, HttpResponseNotFound
 from django.shortcuts import render
 from .scraper.score_calculator import get_player_score_sources_per_game_for_active_tournament
+from .scraper.statistics.stats import ALL_STAT_SOURCES
 from .models import Player, UserDraft, UserDraftPlayer, PlayerScorePoint, Game, GamePlayer, PlayerStat
 from django.contrib.auth import logout
 from .graphing.group_by_time import group_data_by_day
+from .graphing.bell_curve import create_bell_curve_dataset, create_bell_curve_labels
 from .helper import authorized
 from collections import defaultdict
 
@@ -186,3 +188,51 @@ def game_page(request, game_id=None):
         "scores": scores
     })
 
+
+POSITION_COLOURS = {
+    "top": ["#de3333", "#ff4444"],
+    "jungle": ["#33de33", "#55ff55"],
+    "mid": ["#3333de", "#5555ff"],
+    "bot": ["#2299de", "#33aaff"],
+    "support": ["#de0055", "#ff2277"]
+}
+
+@authorized
+def stats_page(request, stat_source=None):
+    stat_source = stat_source.lower()
+    if stat_source != "total" and stat_source not in ALL_STAT_SOURCES:
+        return HttpResponseNotFound()
+    
+    stat_by_role = defaultdict(list)
+
+    for player in Player.objects.filter(active=True).all():
+        for _, score in get_player_score_sources_per_game_for_active_tournament(player):
+            if stat_source == "total":
+                stat_value = score.score
+            else:
+                stat_value = score.get(stat_source)
+            stat_by_role[player.position].append(stat_value)
+
+    print(stat_by_role)
+    stat_name = stat_source.replace("_", " ").title()
+
+    graph_data = {
+        "labels": [stat_name],
+        "datasets": [
+            {
+                "label": pos.title(),
+                "backgroundColor": POSITION_COLOURS[pos][1],
+                "borderColor": POSITION_COLOURS[pos][0],
+                "borderWidth": 1,
+                "outlierColor": "#999999",
+                "padding": 10,
+                "itemRadius": 0,
+                "data": [stat_by_role[pos]]
+            } for pos in POSITION_ORDER
+        ]
+    }
+
+    return render(request, "stat_page.html", {
+        "stat_name": stat_name,
+        "graph_data": graph_data
+    })

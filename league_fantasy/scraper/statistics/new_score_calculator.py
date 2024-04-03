@@ -1,4 +1,4 @@
-from .stats import StatName
+from .stats import StatName, StatSource
 from ..score_computer import ScoreComputer
 import math
 
@@ -10,27 +10,27 @@ def calculate_lane_performance(position, duration, stats, score):
   cspm = stats.get(StatName.cs) / duration
   first_blood = stats.get(StatName.first_blood)
 
-  score.add("solo kill", solo_kills)
+  score.add(StatSource.solo_kill, solo_kills)
 
   if position == "mid":
-    score.add("pick with ally", math.floor(pick_with_ally / 3))
+    score.add(StatSource.pick_with_ally, math.floor(pick_with_ally / 3))
   else:
-    score.add("pick with ally", math.floor(pick_with_ally / 5))
+    score.add(StatSource.pick_with_ally, math.floor(pick_with_ally / 5))
 
   if gd15 > 1000:
-    score.add("gd15", 3)
+    score.add(StatSource.gd15, 3)
   elif gd15 > 0:
-    score.add("gd15", 1)
+    score.add(StatSource.gd15, 1)
   
   if xpd15 > 1000:
-    score.add("xpd15", 3)
+    score.add(StatSource.xpd15, 3)
   elif xpd15 > 0:
-    score.add("xpd15", 1)
+    score.add(StatSource.xpd15, 1)
   
   if cspm >= 8:
-    score.add("cspm", math.floor(cspm - 8))
+    score.add(StatSource.cspm, math.floor(cspm - 8))
 
-  score.add("first blood", first_blood * 2)
+  score.add(StatSource.first_blood, first_blood * 2)
 
 
 def calculate_objectives(duration, stats, score):
@@ -41,18 +41,18 @@ def calculate_objectives(duration, stats, score):
   objectives_secured = stats.get(StatName.epic_monster_secured)
   objectives_stolen = stats.get(StatName.objectives_stolen)
 
-  score.add("vision", math.floor(vision_score_pm))
+  score.add(StatSource.vision, math.floor(vision_score_pm))
   
   if turret_damage > 5000:
-    score.add("turret", math.floor((turret_damage - 5000) // 1000))
+    score.add(StatSource.turret, math.floor((turret_damage - 5000) // 1000))
 
-  score.add("turret plates", turret_plates)
+  score.add(StatSource.turret_plates, turret_plates)
 
   if control_ward_pct > 0.6:
-    score.add("control ward %", math.floor((control_ward_pct * 10) - 6))
+    score.add(StatSource.control_ward_pct, math.floor((control_ward_pct * 10) - 6))
   
-  score.add("objectives secured", objectives_secured * 2)
-  score.add("objectives stolen", objectives_stolen * 3)
+  score.add(StatSource.objectives_secured, objectives_secured * 2)
+  score.add(StatSource.objectives_stolen, objectives_stolen * 3)
 
 
 def calculate_teamfights(position, duration, stats, score):
@@ -62,48 +62,41 @@ def calculate_teamfights(position, duration, stats, score):
   dpm = stats.get(StatName.total_damage_to_champion) / duration
   immobilisations = stats.get(StatName.immobilisations)
   immobilise_and_kill = stats.get(StatName.immobilise_and_kill)
-  knock_into_team_and_kill = stats.get(StatName.knock_into_team_and_kill)
 
-  score.add("damage taken", math.floor(damage_taken_pm / 666))
-  score.add("self mitigated", math.floor(self_mitigated_pm / 666))
-  score.add("heals and shields", math.floor(heal_shield_pm / 50))
-  #score.add("knock into team & kill", math.floor(knock_into_team_and_kill / 3))
-  score.add("immobilize & kill", math.floor(immobilise_and_kill / 5))
+  score.add(StatSource.damage_taken, math.floor(damage_taken_pm / 666))
+  score.add(StatSource.self_mitigated, math.floor(self_mitigated_pm / 666))
+  score.add(StatSource.heals_and_shields, math.floor(heal_shield_pm / 50))
+  score.add(StatSource.immobilise_and_kill, math.floor(immobilise_and_kill / 5))
   
   if position != "support":
     if dpm >= 600:
       dpm_value = math.floor(dpm // 100) - 5
       if position == "mid":
-        score.add("dpm", dpm_value * 2)
+        score.add(StatSource.dpm, dpm_value * 2)
       else:
-        score.add("dpm", dpm_value)
+        score.add(StatSource.dpm, dpm_value)
     elif dpm < 200:
-      score.add("dpm", -1)
+      score.add(StatSource.dpm, -1)
 
-  score.add("immobilisations", math.floor(immobilisations / 20))
+  score.add(StatSource.immobilisations, math.floor(immobilisations / 20))
 
 
 def calculate_scoreline(position, stats, score):
   kda = stats.get(StatName.kda)
   deaths = stats.get(StatName.deaths)
 
-  if position == "support":
-    if deaths == 0 or kda >= 10:
-      score.add("kda", 1)
-    else:
-      score.add("kda", 0)
-  elif deaths == 0:
-    score.add("kda", 8)
-  elif kda >= 10:
-    score.add("kda", 5)
-  elif kda >= 5:
-    score.add("kda", 2)
-  elif kda >= 1:
-    score.add("kda", 1)
-  else:
-    score.add("kda", -2)
+  if deaths == 0:
+    score.add(StatSource.perfect_kda, 3)
   
+  if kda < 1:
+    score.add(StatSource.kda, -2)
+  else:
+    score.add(StatSource.kda, math.floor(min(kda, 10) / 2))
 
+  if kda >= 10:
+    score.add(StatSource.kda, math.floor(min(kda - 10, 10)))
+  
+  
 
 def calculate_multikill_score(stats):
   doubles = stats.get(StatName.double_kills, 0)
@@ -130,8 +123,8 @@ def calculate_montage(stats, score):
 
   calculate_multikill_score(stats)
 
-  score.add("alcove kills", alcove_kills)
-  score.add("heavy damage & survive", heavy_damage_survive * 2)
+  score.add(StatSource.alcove_kills, alcove_kills)
+  score.add(StatSource.heavy_damage_and_survive, heavy_damage_survive * 2)
 
 
 def calculate_jungle(stats, score):
@@ -140,17 +133,17 @@ def calculate_jungle(stats, score):
   kp = stats.get(StatName.kill_participation)
   takedown_all_lanes = stats.get(StatName.takedown_all_lanes_early)
 
-  score.add("barons", baron_kill)
+  score.add(StatSource.barons, baron_kill)
 
   if early_dragon > 0:
-    score.add("early dragon", max(math.floor((480 - early_dragon) / 60), 0))
+    score.add(StatSource.early_dragon, max(math.floor((480 - early_dragon) / 60), 0))
 
-  score.add("takedown all lanes early", takedown_all_lanes * 2)
+  score.add(StatSource.takedown_all_lanes_early, takedown_all_lanes * 2)
 
   if kp >= 0.9:
-    score.add("kp", 2)
+    score.add(StatSource.kp, 2)
   elif kp < 0.3:
-    score.add("kp", -2)
+    score.add(StatSource.kp, -2)
 
 
 def calculate_support(stats, score):
@@ -158,20 +151,20 @@ def calculate_support(stats, score):
   only_death_in_teamfight_win = stats.get(StatName.only_death_in_teamfight_win)
   kp = stats.get(StatName.kill_participation)
 
-  score.add("save ally", save_ally)
-  score.add("only death in teamfight win", only_death_in_teamfight_win)
+  score.add(StatSource.save_ally, save_ally)
+  score.add(StatSource.only_death_in_teamfight_win, only_death_in_teamfight_win)
   
   if kp >= 0.9:
-    score.add("kp", 2)
+    score.add(StatSource.kp, 2)
   elif kp < 0.3:
-    score.add("kp", -2)
+    score.add(StatSource.kp, -2)
 
 
 def calculate_score(game, position, stats):
   duration = game.game_duration
   score = ScoreComputer(0)
 
-  score.add("games", -10)
+  score.add(StatSource.games, -10)
 
   calculate_lane_performance(position, duration, stats, score)
   calculate_objectives(duration, stats, score)

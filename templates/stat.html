@@ -1,0 +1,17 @@
+
+<h1>{{ stat_name }}</h1>
+
+{{ graph_data|json_script:"graph_data" }}
+
+<div id="graph" class="tab-item">
+  <canvas id="stat-graph"></canvas>
+</div>
+
+<script>
+  const graphData = JSON.parse(document.getElementById("graph_data").textContent)
+
+  new Chart(document.getElementById('stat-graph'), {
+    type: 'boxplot',
+    data: graphData,
+  })
+</script>

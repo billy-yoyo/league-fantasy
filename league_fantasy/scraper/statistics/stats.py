@@ -61,6 +61,42 @@ class StatName:
   immobilisations = "immobilisations"
   take_heavy_damage_survive = "take_heavy_damage_survive"
 
+
+ALL_STAT_NAMES = [key for key in StatName.__dict__ if not key.startswith("_")]
+
+class StatSource:
+  solo_kill = "solo_kill"
+  pick_with_ally = "pick_with_ally"
+  gd15 = "gd15"
+  xpd15 = "xpd15"
+  cspm = "cspm"
+  first_blood = "first_blood"
+  vision = "vision"
+  turret = "turret"
+  turret_plates = "turret_plates"
+  control_ward_pct = "control_ward_pct"
+  objectives_secured = "objectives_secured"
+  objectives_stolen = "objectives_stolen"
+  damage_taken = "damage_taken"
+  self_mitigated = "self_mitigated"
+  heals_and_shields = "heals_and_shields"
+  immobilise_and_kill = "immobilise_and_kill"
+  dpm = "dpm"
+  immobilisations = "immobilisations"
+  perfect_kda = "perfect_kda"
+  kda = "kda"
+  alcove_kills = "alcove_kills"
+  heavy_damage_and_survive = "heavy_damage_and_survive"
+  barons = "barons"
+  early_dragon = "early dragon"
+  takedown_all_lanes_early = "takedown_all_lanes_early"
+  kp = "kp"
+  save_ally = "save_ally"
+  only_death_in_teamfight_win = "only_death_in_teamfight_win"
+  games = "games"
+
+ALL_STAT_SOURCES = [key for key in StatSource.__dict__ if not key.startswith("_")]
+
 def create_stat_matcher(matcher_string):
   parts = matcher_string.split(".")
   def matcher(obj):

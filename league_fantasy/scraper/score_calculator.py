@@ -133,7 +133,7 @@ def get_player_score_sources_per_game_for_active_tournament(player):
   game_scores = []
   for game in Game.objects.filter(tournament__active=True).order_by("time"):
     stats = defaultdict(int)
-    for stat in PlayerStat.objects.filter(game=game).filter(player=player):
+    for stat in PlayerStat.objects.filter(game=game).filter(player=player).all():
       stats[stat.stat_name] = stat.stat_value
     
     if len(stats) == 0:
