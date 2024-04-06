@@ -31,7 +31,7 @@ class TournamentAdmin(admin.ModelAdmin):
     recalculate_scores_for_tournament,
     post_game_refresh
   ]
-  list_display = ["name", "season", "active"]
+  list_display = ["name", "disambig_name", "season", "active"]
 
 class SeasonAdmin(admin.ModelAdmin):
   list_display = ["name"]

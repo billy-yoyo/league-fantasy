@@ -21,10 +21,14 @@ def is_int(x):
   except:
     return False
 
-def get_or_create_team(full_name, short_name):
+def get_or_create_team(full_name, short_name, region):
   team = Team.objects.filter(full_name__iexact=full_name).first()
   if not team:
-    team = Team(full_name=full_name, short_name=short_name)
+    team = Team(full_name=full_name, short_name=short_name, region=region)
+    team.save()
+  else:
+    team.short_name = short_name
+    team.region = region
     team.save()
   return team
 
@@ -60,12 +64,11 @@ def get_team_player_and_positions(team_data):
   return player_positions
 
 def scrape_match_list(tournament):
-  tournament_name = tournament.name
-  season_name = tournament.season.name
+  tournament_name = tournament.disambig_name
 
   games = []
 
-  data = esclient.get_match_history(season_name, tournament_name)
+  data = esclient.get_match_history(tournament_name)
 
   team_overview_pages = set()
   tournament_official_name = None
@@ -82,9 +85,10 @@ def scrape_match_list(tournament):
   for team_data in team_data_results:
     team_shortname = team_data["Short"]
     team_fullname = team_data["Name"]
+    team_region = team_data["Region"]
     team_roster = get_team_player_and_positions(team_data)
 
-    team = get_or_create_team(team_fullname, team_shortname)
+    team = get_or_create_team(team_fullname, team_shortname, team_region)
     for player, position in team_roster:
       roster_data[player] = (team, position)
     

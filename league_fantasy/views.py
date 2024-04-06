@@ -213,7 +213,6 @@ def stats_page(request, stat_source=None):
                 stat_value = score.get(stat_source)
             stat_by_role[player.position].append(stat_value)
 
-    print(stat_by_role)
     stat_name = stat_source.replace("_", " ").title()
 
     graph_data = {

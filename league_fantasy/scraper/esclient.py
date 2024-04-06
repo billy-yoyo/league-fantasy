@@ -60,17 +60,17 @@ class LolClient:
         result = self.cargo_client.query(
             tables="Teams=TM, TournamentRosters=TR",
             join_on="TM.OverviewPage=TR.Team",
-            fields="TM.OverviewPage, TM.Name, TM.Short, TR.RosterLinks, TR.Roles",
+            fields="TM.OverviewPage, TM.Name, TM.Short, TR.RosterLinks, TR.Roles, TM.Region",
             where=f"TM.OverviewPage IN ({teams_query}) AND TR.Tournament='{tournament_official_name}'"
         )
         return result
 
-    def get_match_history(self, season_name, tournament_name):
+    def get_match_history(self, tournament_name):
         result = self.cargo_client.query(
           tables="ScoreboardGames=SG, Tournaments=T",
           join_on="SG.OverviewPage=T.OverviewPage",
           fields="T.Name, SG.DateTime_UTC, SG.Team1, SG.Team2, SG.RiotPlatformGameId, SG.Winner, SG.DateTime_UTC",
-          where=f"T.OverviewPage = 'LEC/{season_name}/{tournament_name}'"
+          where=f"T.OverviewPage = '{tournament_name}'"
         )
         return result
 

@@ -11,6 +11,7 @@ class Tournament(models.Model):
   name = models.CharField(max_length=255)
   season = models.ForeignKey(Season, on_delete=models.CASCADE)
   active = models.BooleanField(default=False)
+  disambig_name = models.CharField(max_length=255)
 
   def __str__(self):
     return self.name
@@ -21,6 +22,7 @@ class Team(models.Model):
   icon_url = models.CharField(max_length=255, default="")
   background_colour = models.CharField(max_length=10, default="#ffffff")
   active = models.BooleanField(default=True)
+  region = models.CharField(max_length=255)
 
   def __str__(self) -> str:
     return self.full_name
