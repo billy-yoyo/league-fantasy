@@ -1,10 +1,10 @@
 from django.http import HttpResponseRedirect, HttpResponseForbidden
 from django.shortcuts import render
 from django.contrib.auth import get_user_model
-from .models import UserDraft, UserDraftPlayer, UserDraftScorePoint, Leaderboard, LeaderboardMember
+from .models import UserDraft, UserDraftPlayer, UserDraftScorePoint, Leaderboard, LeaderboardMember, PlayerTournamentScore
 from collections import defaultdict
 from .graphing.group_by_time import group_data_by_day
-from .helper import authorized
+from .helper import authorized, get_tournament
 
 @authorized
 def create_leaderboard(request):
@@ -129,6 +129,8 @@ GRAPH_DATA_POINTS = 10
 
 @authorized
 def draft_leaderboard(request, leaderboard_id=None):
+    tournament = get_tournament(request)
+
     leaderboard = None
     if leaderboard_id is None:
         memberships = LeaderboardMember.objects.filter(user=request.user).all()
@@ -146,16 +148,21 @@ def draft_leaderboard(request, leaderboard_id=None):
     membership = LeaderboardMember.objects.filter(user=request.user).filter(leaderboard=leaderboard).first()
     if membership is None:
         return HttpResponseRedirect("/leaderboards")
-
+    
     drafts = UserDraft.objects.filter(user__in=members).order_by("-score").all()
     draft_players = defaultdict(dict)
     draft_player_ids = defaultdict(dict)
     user_colours = defaultdict(lambda: "#000000")
     positions = ("top", "jungle", "mid", "bot", "support")
+    player_scores = {}
 
     for draft in drafts:
         for player in UserDraftPlayer.objects.filter(draft=draft):
-            draft_players[draft.user.username][player.player.position] = f"{player.player.team.short_name} {player.player.in_game_name} ({player.player.score})"
+            if player.id not in player_scores:
+              tournament_score = PlayerTournamentScore.objects.filter(player=player.player, tournament=tournament).first()
+              player_scores[player.id] = tournament_score.score if tournament_score else player.player.score
+            
+            draft_players[draft.user.username][player.player.position] = f"{player.player.team.short_name} {player.player.in_game_name} ({player_scores[player.id]})"
             draft_player_ids[draft.user.username][player.player.position] = player.player.id
             user_colours[draft.user.username] = draft.colour
         for position in positions:

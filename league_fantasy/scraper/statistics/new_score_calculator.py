@@ -9,23 +9,31 @@ def calculate_lane_performance(position, duration, stats, score):
   xpd15 = stats.get(StatName.xp_diff_15)
   cspm = stats.get(StatName.cs) / duration
   first_blood = stats.get(StatName.first_blood)
+  takedown_all_lanes = stats.get(StatName.takedown_all_lanes_early)
+  ganks15 = stats.get(StatName.ganks_15)
 
-  score.add(StatSource.solo_kill, solo_kills)
+  score.add(StatSource.solo_kill, solo_kills * 2)
 
-  if position == "mid":
+  if takedown_all_lanes > 0:
+    score.add(StatSource.takedown_all_lanes_early, takedown_all_lanes * 2)
+
+  if position == "mid" or position == "top":
     score.add(StatSource.pick_with_ally, math.floor(pick_with_ally / 3))
   else:
     score.add(StatSource.pick_with_ally, math.floor(pick_with_ally / 5))
-
-  if gd15 > 1000:
-    score.add(StatSource.gd15, 3)
+  
+  if gd15 >= 600:
+    score.add(StatSource.gd15, math.floor((gd15 - 400) / 200))
   elif gd15 > 0:
     score.add(StatSource.gd15, 1)
   
-  if xpd15 > 1000:
-    score.add(StatSource.xpd15, 3)
+  if xpd15 >= 600:
+    score.add(StatSource.xpd15, math.floor((xpd15 - 400) / 200))
   elif xpd15 > 0:
     score.add(StatSource.xpd15, 1)
+
+  if ganks15 > 0:
+    score.add(StatSource.ganks, ganks15)
   
   if cspm >= 8:
     score.add(StatSource.cspm, math.floor(cspm - 8))
@@ -71,10 +79,7 @@ def calculate_teamfights(position, duration, stats, score):
   if position != "support":
     if dpm >= 600:
       dpm_value = math.floor(dpm // 100) - 5
-      if position == "mid":
-        score.add(StatSource.dpm, dpm_value * 2)
-      else:
-        score.add(StatSource.dpm, dpm_value)
+      score.add(StatSource.dpm, dpm_value)
     elif dpm < 200:
       score.add(StatSource.dpm, -1)
 
@@ -91,12 +96,8 @@ def calculate_scoreline(position, stats, score):
   if kda < 1:
     score.add(StatSource.kda, -2)
   else:
-    score.add(StatSource.kda, math.floor(min(kda, 10) / 2))
+    score.add(StatSource.kda, math.floor(min(kda, 20) / 2))
 
-  if kda >= 10:
-    score.add(StatSource.kda, math.floor(min(kda - 10, 10)))
-  
-  
 
 def calculate_multikill_score(stats):
   doubles = stats.get(StatName.double_kills, 0)
@@ -131,14 +132,12 @@ def calculate_jungle(stats, score):
   baron_kill = stats.get(StatName.baron_kill)
   early_dragon = stats.get(StatName.early_dragon)
   kp = stats.get(StatName.kill_participation)
-  takedown_all_lanes = stats.get(StatName.takedown_all_lanes_early)
 
   score.add(StatSource.barons, baron_kill)
 
   if early_dragon > 0:
     score.add(StatSource.early_dragon, max(math.floor((480 - early_dragon) / 60), 0))
 
-  score.add(StatSource.takedown_all_lanes_early, takedown_all_lanes * 2)
 
   if kp >= 0.9:
     score.add(StatSource.kp, 2)
@@ -154,7 +153,7 @@ def calculate_support(stats, score):
   score.add(StatSource.save_ally, save_ally)
   score.add(StatSource.only_death_in_teamfight_win, only_death_in_teamfight_win)
   
-  if kp >= 0.9:
+  if kp >= 0.8:
     score.add(StatSource.kp, 2)
   elif kp < 0.3:
     score.add(StatSource.kp, -2)
@@ -164,7 +163,7 @@ def calculate_score(game, position, stats):
   duration = game.game_duration
   score = ScoreComputer(0)
 
-  score.add(StatSource.games, -10)
+  score.add(StatSource.games, -13)
 
   calculate_lane_performance(position, duration, stats, score)
   calculate_objectives(duration, stats, score)

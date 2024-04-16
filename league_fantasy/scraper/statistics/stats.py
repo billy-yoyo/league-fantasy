@@ -27,6 +27,7 @@ class StatName:
   gold_diff_15 = "gold_diff_15"
   cs_diff_15 = "cs_diff_15"
   xp_diff_15 = "xp_diff_15"
+  ganks_15 = "ganks_15"
   level_diff_15 = "level_diff_15"
   objectives_stolen = "objectives_stolen"
   turret_damage = "turret_damage"
@@ -94,6 +95,7 @@ class StatSource:
   save_ally = "save_ally"
   only_death_in_teamfight_win = "only_death_in_teamfight_win"
   games = "games"
+  ganks = "ganks"
 
 ALL_STAT_SOURCES = [key for key in StatSource.__dict__ if not key.startswith("_")]
 

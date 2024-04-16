@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Tournament, Season, Team, Player, Game, UserDraft, UserDraftPlayer, Leaderboard, LeaderboardMember, PlayerSynonym
+from .models import Tournament, Season, Team, Player, Game, UserDraft, UserDraftPlayer, Leaderboard, LeaderboardMember, PlayerSynonym, PlayerTournamentScore
 from .scraper.scrape_match_history import scrape_match_list
 from .scraper.scrape_match import scrape_match
 from .scraper.score_calculator import update_all_player_scores_for_tournament
@@ -31,7 +31,7 @@ class TournamentAdmin(admin.ModelAdmin):
     recalculate_scores_for_tournament,
     post_game_refresh
   ]
-  list_display = ["name", "disambig_name", "season", "active"]
+  list_display = ["id", "name", "disambig_name", "season", "active"]
 
 class SeasonAdmin(admin.ModelAdmin):
   list_display = ["name"]
@@ -44,6 +44,10 @@ class PlayerAdmin(admin.ModelAdmin):
 
 class PlayerSynonymAdmin(admin.ModelAdmin):
   list_display = ["name", "player"]
+
+class PlayerTournamentScoreAdmin(admin.ModelAdmin):
+  list_display = ["player", "tournament", "score"]
+
 
 class GameAdmin(admin.ModelAdmin):
   actions = [
@@ -69,6 +73,7 @@ admin.site.register(Season, SeasonAdmin)
 admin.site.register(Team, TeamAdmin)
 admin.site.register(Player, PlayerAdmin)
 admin.site.register(PlayerSynonym, PlayerSynonymAdmin)
+admin.site.register(PlayerTournamentScore, PlayerTournamentScoreAdmin)
 admin.site.register(Game, GameAdmin)
 admin.site.register(UserDraft, UserDraftAdmin)
 admin.site.register(UserDraftPlayer, UserDraftPlayerAdmin)

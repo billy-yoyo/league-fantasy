@@ -11,7 +11,9 @@ def keyvalue(dict, key):
 
 @register.filter
 def toint(value):
-    return int(value)
+    if value is not None:
+        return int(value)
+    return 0
 
 @register.filter
 def asdecimal(value):

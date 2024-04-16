@@ -1,12 +1,12 @@
 from django.http import HttpResponse, HttpResponseRedirect, HttpResponseBadRequest, HttpResponseForbidden, HttpResponseNotFound
 from django.shortcuts import render
-from .scraper.score_calculator import get_player_score_sources_per_game_for_active_tournament
+from .scraper.score_calculator import get_player_score_sources_per_game_for_tournament
 from .scraper.statistics.stats import ALL_STAT_SOURCES
-from .models import Player, UserDraft, UserDraftPlayer, PlayerScorePoint, Game, GamePlayer, PlayerStat
+from .models import Player, UserDraft, UserDraftPlayer, PlayerScorePoint, Game, GamePlayer, PlayerStat, PlayerTournamentScore
 from django.contrib.auth import logout
 from .graphing.group_by_time import group_data_by_day
 from .graphing.bell_curve import create_bell_curve_dataset, create_bell_curve_labels
-from .helper import authorized
+from .helper import authorized, get_tournament
 from collections import defaultdict
 
 def logout_view(request):
@@ -21,11 +21,19 @@ def home(request):
 
 @authorized
 def player_leaderboard(request):
-    players = Player.objects.filter(active=True).order_by("-score").all()
-    positions = ("top", "jungle", "mid", "bot", "support")
-    return render(request, "player_page.html", { "players": players, "positions": positions })
+    tournament = get_tournament(request)
 
-GRAPH_DATA_POINTS = 10
+    tournament_players = PlayerTournamentScore.objects.filter(tournament=tournament).order_by("-score").all()
+
+    positions = ("top", "jungle", "mid", "bot", "support")
+
+    csv = "\\n".join(
+        ",".join([str(tp.player.team.short_name), str(tp.player.in_game_name), str(tp.player.position), str(tp.score)]) for tp in tournament_players
+    )
+
+    return render(request, "player_page.html", { "players": tournament_players, "positions": positions, "csv": csv })
+
+GRAPH_DATA_POINTS = 20
 
 @authorized
 def draft(request):
@@ -74,7 +82,7 @@ def submit_draft(request):
     if any(p is None or p == "none" for p in player_ids):
         return HttpResponseRedirect("/draft?error=true") 
 
-    players = Player.objects.filter(id__in=player_ids).all()
+    players = PlayerTournamentScore.objects.filter(player__id__in=player_ids).all()
 
     score = 0
     for player in players:
@@ -91,18 +99,20 @@ def submit_draft(request):
     UserDraftPlayer.objects.filter(draft=user_draft).delete()
 
     for player in players:
-        UserDraftPlayer(draft=user_draft, player=player).save()
+        UserDraftPlayer(draft=user_draft, player=player.player).save()
 
     return HttpResponseRedirect("/draft")
 
 @authorized
 def player_graph(request, player_id=None):
+    tournament = get_tournament(request)
+
     try:
         player = Player.objects.get(id=player_id)
     except:
         return HttpResponseBadRequest()
     
-    game_scores = get_player_score_sources_per_game_for_active_tournament(player)
+    game_scores = get_player_score_sources_per_game_for_tournament(player, tournament)
     game_names = [
         (game.team_a.short_name, game.team_a.id == game.winner,
          game.team_b.short_name, game.team_b.id == game.winner, game.id) for game, _ in game_scores
@@ -124,6 +134,8 @@ def player_graph(request, player_id=None):
         GRAPH_DATA_POINTS,
         lambda x: x.player.id
     )
+
+    player_score = PlayerTournamentScore.objects.filter(player=player, tournament=tournament).first()
     
     datasets = [{
         "label": "",
@@ -141,6 +153,7 @@ def player_graph(request, player_id=None):
     return render(request, "player_graph_page.html", {
         "player": player,
         "player_name": f"{player.team.short_name} {player.in_game_name}",
+        "player_score": player_score.score if player_score else 0,
         "graph_data": graph_data,
         "sources": sources,
         "scores": scores,
@@ -199,19 +212,21 @@ POSITION_COLOURS = {
 
 @authorized
 def stats_page(request, stat_source=None):
+    tournament = get_tournament(request)
+
     stat_source = stat_source.lower()
     if stat_source != "total" and stat_source not in ALL_STAT_SOURCES:
         return HttpResponseNotFound()
     
     stat_by_role = defaultdict(list)
 
-    for player in Player.objects.filter(active=True).all():
-        for _, score in get_player_score_sources_per_game_for_active_tournament(player):
+    for tournament_player in PlayerTournamentScore.objects.filter(tournament=tournament).all():
+        for _, score in get_player_score_sources_per_game_for_tournament(tournament_player.player, tournament):
             if stat_source == "total":
                 stat_value = score.score
             else:
                 stat_value = score.get(stat_source)
-            stat_by_role[player.position].append(stat_value)
+            stat_by_role[tournament_player.player.position].append(stat_value)
 
     stat_name = stat_source.replace("_", " ").title()
 

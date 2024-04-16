@@ -1,4 +1,4 @@
-from ..models import Player, Tournament, PlayerStat, Game, UserDraft, UserDraftPlayer, UserDraftScorePoint, PlayerScorePoint, GamePlayer
+from ..models import Player, Tournament, PlayerStat, Game, UserDraft, UserDraftPlayer, UserDraftScorePoint, PlayerScorePoint, GamePlayer, PlayerTournamentScore
 from .statistics.stats import StatName
 from datetime import datetime
 from .score_computer import ScoreComputer
@@ -129,9 +129,9 @@ def calculate_score_for_game(game, position, stats):
 
   return score
 
-def get_player_score_sources_per_game_for_active_tournament(player):
+def get_player_score_sources_per_game_for_tournament(player, tournament):
   game_scores = []
-  for game in Game.objects.filter(tournament__active=True).order_by("time"):
+  for game in Game.objects.filter(tournament=tournament).order_by("time"):
     stats = defaultdict(int)
     for stat in PlayerStat.objects.filter(game=game).filter(player=player).all():
       stats[stat.stat_name] = stat.stat_value
@@ -142,15 +142,19 @@ def get_player_score_sources_per_game_for_active_tournament(player):
     position = player.position
     if game_player:
       position = game_player.position
-    game_score = calculate_score_for_game(game, position, stats)
-    #game_score = new_calculate_score(game, position, stats)
+    #game_score = calculate_score_for_game(game, position, stats)
+    game_score = new_calculate_score(game, position, stats)
     game_scores.append((game, game_score))
   return sorted(game_scores, key=lambda x: x[0].time)
 
-def update_player_score(player, tournaments, time):
+
+def update_player_score(tournament_player, time):
+  player = tournament_player.player
+  tournament = tournament_player.tournament
+
   score = ScoreComputer(0)
   total_games = 0
-  for game in Game.objects.filter(tournament__in=tournaments):
+  for game in Game.objects.filter(tournament=tournament):
     stats = defaultdict(int)
     for stat in PlayerStat.objects.filter(game=game).filter(player=player):
       stats[stat.stat_name] = stat.stat_value
@@ -160,15 +164,19 @@ def update_player_score(player, tournaments, time):
     position = player.position
     if game_player:
       position = game_player.position
-    game_score = calculate_score_for_game(game, position, stats)
-    #game_score = new_calculate_score(game, position, stats)
+    #game_score = calculate_score_for_game(game, position, stats)
+    game_score = new_calculate_score(game, position, stats)
     score.merge(game_score)
     total_games += 1
 
-  player.score = score.score
-  player.save()
+  if tournament.active:
+    player.score = score.score
+    player.save()
 
   PlayerScorePoint(player=player, score=score.score, time=time).save()
+
+  tournament_player.score = score.score
+  tournament_player.save()
 
 def update_user_draft(user_draft, time):
   score = 0
@@ -186,15 +194,9 @@ def update_all_user_drafts(time):
 
 def update_all_player_scores_for_tournament(tournament):
   time = datetime.now()
-  for player in Player.objects.all():
-    update_player_score(player, [tournament], time)
-  update_all_user_drafts(time)
+  for tournament_player in PlayerTournamentScore.objects.filter(tournament=tournament):
+    update_player_score(tournament_player, time)
+  if tournament.active:
+    update_all_user_drafts(time)
  
-def update_all_player_scores_for_season(season):
-  time = datetime.now()
-  tournaments = list(Tournament.objects.filter(season=season))
-  for player in Player.objects.all():
-    update_player_score(player, tournaments, time)
-  update_all_user_drafts(time)
-
 

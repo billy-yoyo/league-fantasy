@@ -389,3 +389,16 @@ ul {
   justify-content: center;
   align-items: center;
 }
+
+.csv {
+  margin: 8px;
+  border: none;
+  background-color: #1a2a3a;
+  color: #aaa;
+  padding: 4px 8px;
+  cursor: pointer;
+}
+
+.csv:hover {
+  background-color: #2a3a4a;
+}

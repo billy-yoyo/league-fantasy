@@ -58,6 +58,11 @@ class Player(models.Model):
   def __str__(self):
     return self.in_game_name
 
+class PlayerTournamentScore(models.Model):
+  player = models.ForeignKey(Player, on_delete=models.CASCADE)
+  tournament = models.ForeignKey(Tournament, on_delete=models.CASCADE)
+  score = models.FloatField(default=0)
+
 class GamePlayer(models.Model):
   player = models.ForeignKey(Player, on_delete=models.CASCADE)
   position = models.CharField(max_length=70, choices=Player.POSITIONS)

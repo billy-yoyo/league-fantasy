@@ -19,21 +19,21 @@
     </thead>
     <tbody>
         {% for player in players %}
-            <tr class="player-row" data-position="{{ player.position }}">
+            <tr class="player-row" data-position="{{ player.player.position }}">
                 <th scope="row" class="name">
-                    <a href="/players/{{ player.id }}">
-                        {{ player.in_game_name }}
+                    <a href="/players/{{ player.player.id }}">
+                        {{ player.player.in_game_name }}
                     </a>
                 </th>
                 <td>
                     <div class="row">
-                        <img src="{% static player.team.icon_url %}" style="background-color: {{ player.team.background_colour }};" width="20" height="20"></img>
-                        <span>{{ player.team.full_name }}</span>
+                        <img src="{% static player.team.icon_url %}" style="background-color: {{ player.player.team.background_colour }};" width="20" height="20"></img>
+                        <span>{{ player.player.team.full_name }}</span>
                     </div>
                 </td>
                 <td>
                     <div class="row">
-                        <img src="{% static 'positions/'|add:player.position|add:'.png' %}" width="20" height="20"></img>
+                        <img src="{% static 'positions/'|add:player.player.position|add:'.png' %}" width="20" height="20"></img>
                     </div>
                 </td>
                 <td>{{ player.score }}</td>
@@ -66,4 +66,13 @@
             tableState.cur = button;
         }
     };
+</script>
+
+<button class="csv" onclick="copy()">Copy CSV</button>
+
+<script>
+    const csv = "{{ csv }}";
+    const copy = () => {
+        navigator.clipboard.writeText(csv);
+    }
 </script>

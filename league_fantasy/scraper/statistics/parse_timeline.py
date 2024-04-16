@@ -3,6 +3,8 @@ from .stats import StatName
 from .teamfight_detector import find_teamfights
 from collections import defaultdict
 
+FIFTEEN_MINUTES = 15 * 60 * 1000
+
 def find_frame_for_time(frames, millis):
   closest_frame = None
   closest_frame_gap = None
@@ -14,7 +16,7 @@ def find_frame_for_time(frames, millis):
   return closest_frame
 
 def calculate_15_min_differences(timeline, game, players, participant_map):
-  min15_frame = find_frame_for_time(timeline["frames"], 15 * 60 * 1000)
+  min15_frame = find_frame_for_time(timeline["frames"], FIFTEEN_MINUTES)
   position_players_map = defaultdict(list)
   for player in players:
     position_players_map[player.position].append(player)
@@ -97,6 +99,25 @@ def calculate_final_frame(timeline, game, players, participant_map):
 
   return player_stats
 
+def compute_ganks(team_participants, enemy_participants, pid_to_player, pre15_ganks):
+  jungler = [pid_to_player[pid] for pid in team_participants if pid_to_player[pid].position == "jungle"]
+  support = [pid_to_player[pid] for pid in team_participants if pid_to_player[pid].position == "support"]
+  mid = [pid_to_player[pid] for pid in team_participants if pid_to_player[pid].position == "mid"]
+  top = [pid_to_player[pid] for pid in team_participants if pid_to_player[pid].position == "top"]
+  if len(jungler) > 0:
+    for player in jungler:
+      pre15_ganks[player.id] += 1
+  # it only counts as a support gank if the adc isn't in the fight
+  elif len(support) > 0 and all(pid_to_player[pid].position != "bot" for pid in team_participants):
+    for player in support:
+      pre15_ganks[player.id] += 1
+  elif len(mid) > 0 and all(pid_to_player[pid].position != "mid" for pid in enemy_participants):
+    for player in mid:
+      pre15_ganks[player.id] += 1
+  elif len(top) > 0 and all(pid_to_player[pid].position != "top" for pid in enemy_participants):
+    for player in top:
+      pre15_ganks[player.id] += 1
+
 def calculate_teamfights(data, timeline, game, players, participant_map):
   teamfights = find_teamfights(timeline)
   team_pids = defaultdict(list)
@@ -116,9 +137,19 @@ def calculate_teamfights(data, timeline, game, players, participant_map):
     return []
 
   solo_death_in_teamfight = defaultdict(int)
+  pre15_ganks = defaultdict(int)
 
   for teamfight in teamfights:
     team_deaths = [[pid for pid in pids if pid in teamfight.deaths] for pids in team_pids.values()]
+    team_participants = [[pid for pid in pids if pid in teamfight.participants] for pids in team_pids.values()]
+
+    if teamfight.start <= FIFTEEN_MINUTES:
+      # a successful(ish) gank
+      if len(team_deaths[0]) <= len(team_deaths[1]):
+        compute_ganks(team_participants[0], team_participants[1], pid_to_player, pre15_ganks)
+      if len(team_deaths[1]) <= len(team_deaths[0]):
+        compute_ganks(team_participants[1], team_participants[0], pid_to_player, pre15_ganks)
+
     # no winner
     if len(team_deaths[0]) == len(team_deaths[1]):
       continue
@@ -133,6 +164,7 @@ def calculate_teamfights(data, timeline, game, players, participant_map):
   player_stats = []
   for player in players:
     player_stats.append(PlayerStat(player=player, game=game, stat_name=StatName.only_death_in_teamfight_win, stat_value=solo_death_in_teamfight[player.id]))
+    player_stats.append(PlayerStat(player=player, game=game, stat_name=StatName.ganks_15, stat_value=pre15_ganks[player.id]))
 
   return player_stats
 

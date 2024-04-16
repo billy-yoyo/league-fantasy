@@ -1,5 +1,5 @@
 from datetime import datetime
-from ..models import Team, Game, Player
+from ..models import Team, Game, Player, PlayerTournamentScore
 from .esclient import esclient
 
 MATCH_UTC_FORMAT = "%Y-%m-%d %H:%M:%S"
@@ -32,7 +32,7 @@ def get_or_create_team(full_name, short_name, region):
     team.save()
   return team
 
-def get_or_create_player(team, in_game_name, position):
+def get_or_create_player(tournament, team, in_game_name, position):
   player = Player.objects.filter(in_game_name__iexact=in_game_name).first()
   if not player:
     player = Player(
@@ -45,6 +45,10 @@ def get_or_create_player(team, in_game_name, position):
   else:
     player.active = True
     player.save()
+
+  tournament_player = PlayerTournamentScore.objects.filter(player=player, tournament=tournament).first()
+  if not tournament_player:
+    PlayerTournamentScore(player=player, tournament=tournament, score=0).save()
   return player
 
 POSITIONS = ["top", "jungle", "mid", "bot", "support"]
@@ -63,19 +67,29 @@ def get_team_player_and_positions(team_data):
     player_positions.append((player, position))
   return player_positions
 
+OVERRIDES = {
+  "mad lions": "MAD Lions E.C."
+}
+
+def team_name(name):
+  return OVERRIDES.get(name.lower(), name)
+
 def scrape_match_list(tournament):
   tournament_name = tournament.disambig_name
 
   games = []
 
+  print("getting match history...")
   data = esclient.get_match_history(tournament_name)
 
   team_overview_pages = set()
   tournament_official_name = None
   for match in data:
     tournament_official_name = match["Name"]
-    team_overview_pages.add(match["Team1"])
-    team_overview_pages.add(match["Team2"])
+    team_overview_pages.add(team_name(match["Team1"]))
+    team_overview_pages.add(team_name(match["Team2"]))
+
+  print(team_overview_pages)
   
   cached_teams = {}
 
@@ -90,22 +104,24 @@ def scrape_match_list(tournament):
 
     team = get_or_create_team(team_fullname, team_shortname, team_region)
     for player, position in team_roster:
-      roster_data[player] = (team, position)
+      roster_data[player.lower()] = (team, position)
     
     cached_teams[team_data["OverviewPage"]] = team
+
+  print(cached_teams)
 
   player_data_results = esclient.get_player_data(roster_data.keys())
   for player_data in player_data_results:
     official_name = player_data["Player"]
     in_game_name = player_data["ID"]
-    team, position = roster_data[official_name]
-    get_or_create_player(team, in_game_name, position)
+    team, position = roster_data[official_name.lower()]
+    get_or_create_player(tournament, team, in_game_name, position)
 
   for match in data:
     tournament_official_name = match["Name"]
 
-    team_a = cached_teams[match["Team1"]]
-    team_b = cached_teams[match["Team2"]]
+    team_a = cached_teams[team_name(match["Team1"])]
+    team_b = cached_teams[team_name(match["Team2"])]
 
     winner_index = int(match["Winner"])
 
@@ -118,6 +134,11 @@ def scrape_match_list(tournament):
       continue
       
     rpgid = match["RiotPlatformGameId"]
+    if not rpgid:
+      print(f"skipping match {match}")
+      continue
+
+
     if winner_index == 1:
       winner = team_a.id
     else:
