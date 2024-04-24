@@ -54,7 +54,7 @@
         {% for player in players %}
           <td class="nopad">
             <div class="centered">
-              <img src="{% static player.team.icon_url %}" width="20" height="20"></img>
+              <img src="{% static player.team.icon_url %}" height="20"></img>
             </div>
           </td>
         {% endfor %}
@@ -64,7 +64,7 @@
         {% for player in players %}
           <td class="nopad">
             <div class="centered">
-              <img src="{% static 'positions/'|add:player.position|add:'.png' %}" width="20" height="20"></img>
+              <img src="{% static 'positions/'|add:player.position|add:'.png' %}" height="20"></img>
             </div>
           </td>
         {% endfor %}
