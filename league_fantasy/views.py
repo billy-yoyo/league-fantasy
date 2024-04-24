@@ -71,6 +71,8 @@ def draft(request):
     for player in players:
         player_costs[player.player.id] = player.cost
 
+    players = sorted(players, key=lambda p: p.cost, reverse=True)
+
     for draft_player in UserDraftPlayer.objects.filter(draft=draft):
         if draft_player.player.id in player_costs:
             position_players[draft_player.player.position] = draft_player.player.id

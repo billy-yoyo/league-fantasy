@@ -81,17 +81,10 @@ def scrape_match_list(tournament):
 
   print("getting match history...")
   data = esclient.get_match_history(tournament_name)
-
-  team_overview_pages = set()
-  tournament_official_name = None
-  for match in data:
-    tournament_official_name = match["Name"]
-    team_overview_pages.add(match["Team1"])
-    team_overview_pages.add(match["Team2"])
   
   cached_teams = {}
 
-  team_data_results = esclient.get_team_data(tournament_official_name, team_overview_pages)
+  team_data_results = esclient.get_team_data(tournament_name, [])
   roster_data = {}
 
   for team_data in team_data_results:
@@ -119,8 +112,6 @@ def scrape_match_list(tournament):
     get_or_create_player(tournament, team, in_game_name, position, country)
 
   for match in data:
-    tournament_official_name = match["Name"]
-
     team_a = cached_teams[match["Team1"]]
     team_b = cached_teams[match["Team2"]]
 

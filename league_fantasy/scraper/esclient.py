@@ -56,12 +56,13 @@ class LolClient:
         return result
 
     def get_team_data(self, tournament_official_name, teams):
-        teams_query = ", ".join(f"'{team}'" for team in teams)
+        #teams_query = ", ".join(f"'{team}'" for team in teams)
+        #team_clause = f"TM.OverviewPage IN ({teams_query}) AND " if len(teams) > 0 else ""
         result = self.cargo_client.query(
             tables="Teams=TM, TournamentRosters=TR",
             join_on="TM.OverviewPage=TR.Team",
             fields="TM.OverviewPage, TM.Name, TM.Short, TR.RosterLinks, TR.Roles, TM.Region",
-            where=f"TM.OverviewPage IN ({teams_query}) AND TR.Tournament='{tournament_official_name}'"
+            where=f"TR.OverviewPage='{tournament_official_name}'"
         )
         return result
 
@@ -73,7 +74,7 @@ class LolClient:
           where=f"T.OverviewPage = '{tournament_name}'"
         )
         return result
-
+    
     def get_data_and_timeline(self, rpgid, version = 5):
         """
         Queries Leaguepedia to return two jsons: The data & timeline from a single game.

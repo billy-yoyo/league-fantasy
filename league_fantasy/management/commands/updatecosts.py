@@ -21,16 +21,22 @@ class Command(BaseCommand):
     if not tournament:
       raise Exception(f"Invalid tournament id: {tournament_id}")
 
+    found_players = []
     updates = []
     with open(csv_file, "r", newline="") as f:
       for row in csv.reader(f):
         player_name, cost = row
         player = PlayerTournamentScore.objects.filter(tournament=tournament).filter(player__in_game_name__iexact=player_name).first()
         if player:
+          found_players.append(player_name.lower())
           player.cost = cost
           updates.append(player)
         else:
-          print(f"Failed to find player {player_name}")
+          print(f"No such player: {player_name}")
+
+    for player in PlayerTournamentScore.objects.filter(tournament=tournament).all():
+      if player.player.in_game_name.lower() not in found_players:
+        print(f"No score specified for: {player.player.in_game_name}")
 
     print(f"Updating {len(updates)} players...")
     PlayerTournamentScore.objects.bulk_update(updates, ["cost"])
