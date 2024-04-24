@@ -51,6 +51,7 @@ class Player(models.Model):
   }
   in_game_name = models.CharField(max_length=70)
   team = models.ForeignKey(Team, on_delete=models.CASCADE)
+  country = models.CharField(max_length=70, default="none")
   position = models.CharField(max_length=70, choices=POSITIONS)
   score = models.FloatField(default=0)
   active = models.BooleanField(default=True)
@@ -62,6 +63,7 @@ class PlayerTournamentScore(models.Model):
   player = models.ForeignKey(Player, on_delete=models.CASCADE)
   tournament = models.ForeignKey(Tournament, on_delete=models.CASCADE)
   score = models.FloatField(default=0)
+  cost = models.FloatField(default=0)
 
 class GamePlayer(models.Model):
   player = models.ForeignKey(Player, on_delete=models.CASCADE)

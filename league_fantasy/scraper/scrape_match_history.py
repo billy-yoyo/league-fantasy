@@ -1,6 +1,7 @@
 from datetime import datetime
 from ..models import Team, Game, Player, PlayerTournamentScore
 from .esclient import esclient
+from .countries import get_country_code
 
 MATCH_UTC_FORMAT = "%Y-%m-%d %H:%M:%S"
 
@@ -32,18 +33,22 @@ def get_or_create_team(full_name, short_name, region):
     team.save()
   return team
 
-def get_or_create_player(tournament, team, in_game_name, position):
+def get_or_create_player(tournament, team, in_game_name, position, country):
   player = Player.objects.filter(in_game_name__iexact=in_game_name).first()
   if not player:
     player = Player(
       team=team,
       in_game_name=in_game_name,
+      country=country,
       position=position,
       active=True
     )
     player.save()
   else:
     player.active = True
+    player.country = country
+    player.position = position
+    player.team = team
     player.save()
 
   tournament_player = PlayerTournamentScore.objects.filter(player=player, tournament=tournament).first()
@@ -67,12 +72,7 @@ def get_team_player_and_positions(team_data):
     player_positions.append((player, position))
   return player_positions
 
-OVERRIDES = {
-  "mad lions": "MAD Lions E.C."
-}
 
-def team_name(name):
-  return OVERRIDES.get(name.lower(), name)
 
 def scrape_match_list(tournament):
   tournament_name = tournament.disambig_name
@@ -86,10 +86,8 @@ def scrape_match_list(tournament):
   tournament_official_name = None
   for match in data:
     tournament_official_name = match["Name"]
-    team_overview_pages.add(team_name(match["Team1"]))
-    team_overview_pages.add(team_name(match["Team2"]))
-
-  print(team_overview_pages)
+    team_overview_pages.add(match["Team1"])
+    team_overview_pages.add(match["Team2"])
   
   cached_teams = {}
 
@@ -108,20 +106,23 @@ def scrape_match_list(tournament):
     
     cached_teams[team_data["OverviewPage"]] = team
 
-  print(cached_teams)
-
   player_data_results = esclient.get_player_data(roster_data.keys())
   for player_data in player_data_results:
     official_name = player_data["Player"]
     in_game_name = player_data["ID"]
+    country = get_country_code(player_data["Country"])
+    if country == "NONE":
+      country = get_country_code(player_data["NationalityPrimary"])
+    if country == "NONE":
+      print(f"player {in_game_name} has no country code: {player_data['Country']}")
     team, position = roster_data[official_name.lower()]
-    get_or_create_player(tournament, team, in_game_name, position)
+    get_or_create_player(tournament, team, in_game_name, position, country)
 
   for match in data:
     tournament_official_name = match["Name"]
 
-    team_a = cached_teams[team_name(match["Team1"])]
-    team_b = cached_teams[team_name(match["Team2"])]
+    team_a = cached_teams[match["Team1"]]
+    team_b = cached_teams[match["Team2"]]
 
     winner_index = int(match["Winner"])
 

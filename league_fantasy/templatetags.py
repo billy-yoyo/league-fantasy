@@ -22,3 +22,14 @@ def asdecimal(value):
         return str(int(floatval))
     else:
         return f"{floatval:.2f}"
+    
+@register.filter
+def money(value):
+    value = "".join(reversed(str(int(value))))
+    parts = [value[i:i+3] for i in range(0, len(value), 3)]
+    money = "".join(reversed(",".join(parts)))
+    return f"£{money}"
+
+@register.filter
+def lower(value):
+    return value.lower()

@@ -8,8 +8,11 @@ def authorized(func):
     return func(request, *args, **kwargs)
   return wrapper
 
-def get_tournament(request):
-  optional_id = request.GET.get("t", None)
+def get_tournament(request, is_post=False):
+  if is_post:
+    optional_id = request.POST.get("tournament", None)
+  else:
+    optional_id = request.GET.get("t", None)
 
   if optional_id is None:
     return Tournament.objects.filter(active=True).first()

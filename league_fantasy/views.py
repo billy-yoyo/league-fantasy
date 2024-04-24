@@ -8,6 +8,7 @@ from .graphing.group_by_time import group_data_by_day
 from .graphing.bell_curve import create_bell_curve_dataset, create_bell_curve_labels
 from .helper import authorized, get_tournament
 from collections import defaultdict
+from django.db.models import Count
 
 def logout_view(request):
     logout(request)
@@ -24,20 +25,38 @@ def player_leaderboard(request):
     tournament = get_tournament(request)
 
     tournament_players = PlayerTournamentScore.objects.filter(tournament=tournament).order_by("-score").all()
+    player_game_counts = GamePlayer.objects.filter(game__tournament=tournament).values("player__id").annotate(gcount=Count("player__id"))
+    game_counts_map = defaultdict(int)
+    for result in player_game_counts:
+        game_counts_map[result["player__id"]] = result["gcount"]
 
     positions = ("top", "jungle", "mid", "bot", "support")
 
     csv = "\\n".join(
-        ",".join([str(tp.player.team.short_name), str(tp.player.in_game_name), str(tp.player.position), str(tp.score)]) for tp in tournament_players
+        ",".join([
+            str(tp.player.team.short_name),
+            str(tp.player.in_game_name),
+            str(tp.player.position),
+            str(game_counts_map[tp.player.id]),
+            str(tp.score)
+        ]) for tp in tournament_players 
     )
 
-    return render(request, "player_page.html", { "players": tournament_players, "positions": positions, "csv": csv })
+    return render(request, "player_page.html", {
+        "players": tournament_players,
+        "positions": positions,
+        "csv": csv,
+        "with_cost": False
+    })
 
 GRAPH_DATA_POINTS = 20
+BUDGET = 150_000
 
 @authorized
 def draft(request):
-    players = Player.objects.filter(active=True).order_by("-score").all()
+    tournament = get_tournament(request)
+
+    players = PlayerTournamentScore.objects.filter(tournament=tournament).order_by("-score").all()
     try:
         draft = UserDraft.objects.get(user=request.user)
     except:
@@ -47,9 +66,14 @@ def draft(request):
     positions = ("top", "jungle", "mid", "bot", "support")
 
     position_players = {}
+    player_costs = {}
+
+    for player in players:
+        player_costs[player.player.id] = player.cost
 
     for draft_player in UserDraftPlayer.objects.filter(draft=draft):
-        position_players[draft_player.player.position] = draft_player.player.id
+        if draft_player.player.id in player_costs:
+            position_players[draft_player.player.position] = draft_player.player.id
 
     for pos in positions:
         if pos not in position_players:
@@ -57,13 +81,19 @@ def draft(request):
 
     return render(request, "draft_page.html", {
         "players": players,
+        "player_costs": player_costs,
         "positions": positions,
         "draft": position_players,
-        "error": bool(request.GET.get("error", None))
+        "error": request.GET.get("error", ""),
+        "tournament": tournament,
+        "budget": BUDGET,
+        "with_cost": True
     })
 
 @authorized
 def submit_draft(request):
+    tournament = get_tournament(request, is_post=True)
+
     if not request.user.is_authenticated:
         return HttpResponseForbidden()
 
@@ -80,13 +110,18 @@ def submit_draft(request):
     ]
 
     if any(p is None or p == "none" for p in player_ids):
-        return HttpResponseRedirect("/draft?error=true") 
+        return HttpResponseRedirect(f"/draft?error=player&t={tournament.id}")
 
-    players = PlayerTournamentScore.objects.filter(player__id__in=player_ids).all()
+    players = PlayerTournamentScore.objects.filter(tournament=tournament, player__id__in=player_ids).all()
 
     score = 0
+    cost = 0
     for player in players:
         score += player.score
+        cost += player.cost
+
+    if cost > BUDGET:
+        return HttpResponseRedirect(f"/draft?error=cost&t={tournament.id}")
 
     try:
         user_draft = UserDraft.objects.get(user=request.user)

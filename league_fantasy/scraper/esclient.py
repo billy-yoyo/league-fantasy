@@ -50,7 +50,7 @@ class LolClient:
         player_query = ", ".join(f"'{player_name}'" for player_name in player_names)
         result = self.cargo_client.query(
             tables="Players=P",
-            fields="P.ID, P.Player",
+            fields="P.ID, P.Player, P.Country, P.NationalityPrimary",
             where=f"P.Player in ({player_query})"
         )
         return result

@@ -12,9 +12,14 @@
     <thead>
         <tr>
             <th scope="col">Player</th>
+            <th scope="col">Country</th>
             <th scope="col">Team</th>
             <th scope="col">Position</th>
-            <th scope="col">Score</th>
+            {% if with_cost %}
+                <th scope="col">Cost</th>
+            {% else %}
+                <th scope="col">Score</th>
+            {% endif %}
         </tr>
     </thead>
     <tbody>
@@ -27,6 +32,11 @@
                 </th>
                 <td>
                     <div class="row">
+                        <img class="flag" src="{% static 'flags/'|add:player.player.country|lower|add:'.svg' %}" width="20"></img>
+                    </div>
+                </td>
+                <td>
+                    <div class="row">
                         <img src="{% static player.team.icon_url %}" style="background-color: {{ player.player.team.background_colour }};" width="20" height="20"></img>
                         <span>{{ player.player.team.full_name }}</span>
                     </div>
@@ -36,7 +46,11 @@
                         <img src="{% static 'positions/'|add:player.player.position|add:'.png' %}" width="20" height="20"></img>
                     </div>
                 </td>
-                <td>{{ player.score }}</td>
+                {% if with_cost %}
+                    <td>{{ player.cost|money }}</td>
+                {% else %}
+                    <td>{{ player.score }}</td>
+                {% endif %}
             </tr>
         {% endfor %}
     </tbody>
@@ -68,7 +82,9 @@
     };
 </script>
 
-<button class="csv" onclick="copy()">Copy CSV</button>
+{% if not with_cost %}
+    <button class="csv" onclick="copy()">Copy CSV</button>
+{% endif %}
 
 <script>
     const csv = "{{ csv }}";

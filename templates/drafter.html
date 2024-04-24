@@ -4,11 +4,13 @@
   {% for position in positions %}
     <div class="input-row">
       <img src="{% static 'positions/'|add:position|add:'.png' %}" width="30" height="30"></img>
-      <select name="position_{{position}}" form="draft-form">
+      <select class="position-selector" name="position_{{position}}" form="draft-form" onchange="updateCost()">
         <option value="none">---</option>
         {% for player in players %}
-          {% if player.position == position %}
-            <option value="{{ player.id }}" {% if player.id == draft|keyvalue:position %} selected="true" {% endif %}>{{ player.team.short_name }} {{ player.in_game_name }}</option>
+          {% if player.player.position == position %}
+            <option value="{{ player.player.id }}" {% if player.player.id == draft|keyvalue:position %} selected="true" {% endif %}>
+              {{ player.player.team.short_name }} {{ player.player.in_game_name }} ( {{ player.cost|money }} )
+            </option>
           {% endif %}
         {% endfor %}
       </select>
@@ -17,9 +19,74 @@
 
   {% csrf_token %}
 
+  <input type="hidden" name="tournament" value="{{ tournament.id }}" >
+
   <input type="submit" value="Submit Draft" />
 
-  {% if error %}
+  {% if error == "player" %}
     <span class="error">Invalid draft, make sure you've picked a player for every role.</span>
   {% endif %}
+
+  {% if error == "cost" %}
+    <span class="error">Invalid draft, you've gone over budget.</span>
+  {% endif %}
+
+  <div class="cost-label">
+    Budget
+  </div>
+  <div class="cost-counter-container">
+    <div id="cost-bar" class="cost-bar"></div>
+    <div id="cost-text" class="cost-text"></div>
+  </div>
 </form>
+
+{{ player_costs|json_script:"player_costs" }}
+
+<script>
+  const playerCosts = JSON.parse(document.getElementById("player_costs").textContent);
+  const costBar = document.getElementById('cost-bar');
+  const costText = document.getElementById('cost-text');
+  const positionSelectors = Array.from(document.querySelectorAll("select.position-selector"));
+  const budget = {{ budget }};
+
+  function chunkSubstr(str, size) {
+    const numChunks = Math.ceil(str.length / size)
+    const chunks = new Array(numChunks)
+
+    for (let i = 0, o = 0; i < numChunks; ++i, o += size) {
+      chunks[i] = str.substr(o, size)
+    }
+
+    return chunks
+  }
+
+  const formatMoney = (x) => {
+    x = parseInt(x);
+    const money = chunkSubstr(x.toString().split("").reverse().join(""), 3).join(",").split("").reverse().join("");
+    return `£${money}`;
+  };
+  
+  const updateCost = () => {
+    let totalCost = 0;
+    positionSelectors.map(selector => {
+      const selectedId = parseInt(selector.value);
+      if (!isNaN(selectedId) && playerCosts[selectedId]) {
+        totalCost += playerCosts[selectedId];
+      } else {
+        console.log(`unselected: ${selector.value}`)
+      }
+    })
+    costText.textContent = `${formatMoney(totalCost)} / ${formatMoney(budget)}`;
+
+    const pct = totalCost / budget;
+
+    costBar.style.width = `${Math.min(1, pct) * 100}%`;
+    if (pct > 1) {
+      costBar.style.backgroundColor = '#511';
+    } else {
+      costBar.style.backgroundColor = '#151';
+    }
+  };
+
+  updateCost();
+</script>

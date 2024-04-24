@@ -40,14 +40,13 @@ class TeamAdmin(admin.ModelAdmin):
   list_display = ["id", "short_name", "full_name"]
 
 class PlayerAdmin(admin.ModelAdmin):
-  list_display = ["id", "in_game_name", "score", "team", "position", "active"]
+  list_display = ["id", "in_game_name", "score", "team", "country", "position", "active"]
 
 class PlayerSynonymAdmin(admin.ModelAdmin):
   list_display = ["name", "player"]
 
 class PlayerTournamentScoreAdmin(admin.ModelAdmin):
-  list_display = ["player", "tournament", "score"]
-
+  list_display = ["player", "tournament", "score", "cost"]
 
 class GameAdmin(admin.ModelAdmin):
   actions = [

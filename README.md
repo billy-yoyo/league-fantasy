@@ -28,3 +28,6 @@ Put a file in `/etc/bot.json` containing the bot username + password in JSON for
 
 Alternatively - just run `start.sh`
 
+## Flags
+
+Flags were sourced from https://github.com/lipis/flag-icons and copied here under the MIT license
