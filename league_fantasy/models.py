@@ -55,6 +55,7 @@ class Player(models.Model):
   position = models.CharField(max_length=70, choices=POSITIONS)
   score = models.FloatField(default=0)
   active = models.BooleanField(default=True)
+  overview_page = models.CharField(max_length=255, default=0)
 
   def __str__(self):
     return self.in_game_name

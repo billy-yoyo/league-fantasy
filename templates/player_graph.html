@@ -2,7 +2,7 @@
 
 <h1 class="player-title">
   <img class="team-icon" src="{% static player.team.icon_url %}" class="team-icon" style="background-color: {{ player.team.background_colour }};" height="30"></img>
-  {{ player_name }}
+  <a href="https://lol.fandom.com/wiki/{{ player.overview_page }}">{{ player_name }}</a>
   <div class="player-position">
     (
       <img class="team-icon" src="{% static 'flags/'|add:player.country|lower|add:'.svg' %}" width="20" height="20"></img>

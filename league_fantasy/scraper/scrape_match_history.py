@@ -33,7 +33,7 @@ def get_or_create_team(full_name, short_name, region):
     team.save()
   return team
 
-def get_or_create_player(tournament, team, in_game_name, position, country):
+def get_or_create_player(tournament, team, in_game_name, position, country, overview_page):
   player = Player.objects.filter(in_game_name__iexact=in_game_name).first()
   if not player:
     player = Player(
@@ -41,6 +41,7 @@ def get_or_create_player(tournament, team, in_game_name, position, country):
       in_game_name=in_game_name,
       country=country,
       position=position,
+      overview_page=overview_page,
       active=True
     )
     player.save()
@@ -49,6 +50,7 @@ def get_or_create_player(tournament, team, in_game_name, position, country):
     player.country = country
     player.position = position
     player.team = team
+    player.overview_page = overview_page
     player.save()
 
   tournament_player = PlayerTournamentScore.objects.filter(player=player, tournament=tournament).first()
@@ -103,13 +105,14 @@ def scrape_match_list(tournament):
   for player_data in player_data_results:
     official_name = player_data["Player"]
     in_game_name = player_data["ID"]
+    overview_page = player_data["OverviewPage"] or ""
     country = get_country_code(player_data["Country"])
     if country == "NONE":
       country = get_country_code(player_data["NationalityPrimary"])
     if country == "NONE":
       print(f"player {in_game_name} has no country code: {player_data['Country']}")
     team, position = roster_data[official_name.lower()]
-    get_or_create_player(tournament, team, in_game_name, position, country)
+    get_or_create_player(tournament, team, in_game_name, position, country, overview_page)
 
   for match in data:
     team_a = cached_teams[match["Team1"]]
