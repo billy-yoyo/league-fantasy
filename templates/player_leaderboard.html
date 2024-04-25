@@ -26,11 +26,11 @@
         {% for player in players %}
             <tr class="player-row" data-position="{{ player.player.position }}">
                 <th scope="row" class="name">
+                    <a class="leaguepedia" href="https://lol.fandom.com/wiki/{{ player.player.overview_page }}">
+                        <img src="{% static 'etc/leaguepedia.webp' %}" width="15"></img>
+                    </a>
                     <a href="/players/{{ player.player.id }}">
                         {{ player.player.in_game_name }}
-                    </a>
-                    <a class="leaguepedia" href="https://lol.fandom.com/wiki/{{ player.player.overview_page }}">
-                        <img src="{% static 'etc/leaguepedia.webp' %}" width="20"></img>
                     </a>
                 </th>
                 <td>

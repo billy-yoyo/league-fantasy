@@ -60,7 +60,15 @@ tr th {
 }
 
 .leaguepedia {
-  margin-left: 10px;
+  margin-right: 10px;
+  padding: 5px;
+  border-radius: 4px;
+  background-color: white;
+  display: inline-flex;
+}
+
+.leaguepedia.img {
+  margin: 0;
 }
 
 button.position {
