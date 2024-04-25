@@ -59,6 +59,10 @@ tr th {
   margin-right: 10px;
 }
 
+.leaguepedia {
+  margin-left: 10px;
+}
+
 button.position {
   background-color: #345;
   border: 5px solid #345;
