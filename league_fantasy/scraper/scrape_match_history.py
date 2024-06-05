@@ -125,7 +125,7 @@ def scrape_match_list(tournament):
     team_shortname = team_data["Short"]
     team_fullname = team_data["Name"]
     team_region = team_data["Region"]
-    team_roster = get_team_player_and_positions(team_data)
+    team_roster = get_team_player_and_positions(team_shortname, team_data)
 
     team = get_or_create_team(team_fullname, team_shortname, team_region)
     for player, position in team_roster:
