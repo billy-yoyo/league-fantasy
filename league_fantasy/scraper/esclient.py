@@ -70,7 +70,7 @@ class LolClient:
         result = self.cargo_client.query(
           tables="ScoreboardGames=SG, Tournaments=T",
           join_on="SG.OverviewPage=T.OverviewPage",
-          fields="T.Name, SG.DateTime_UTC, SG.Team1, SG.Team2, SG.RiotPlatformGameId, SG.Winner, SG.DateTime_UTC",
+          fields="T.Name, SG.DateTime_UTC, SG.Team1, SG.Team2, SG.RiotPlatformGameId, SG.RiotGameId, SG.RiotPlatformId, SG.MatchId, SG.GameId, SG.Winner, SG.DateTime_UTC",
           where=f"T.OverviewPage = '{tournament_name}'"
         )
         return result
@@ -102,6 +102,7 @@ class LolClient:
         timeline = None
         for _, page_data in result['query']['pages'].items():
             # This is lazy but there's 2 pages total so it's safe tbh
+            print(page_data)
             if 'Timeline' in page_data['title']:
                 timeline = json.loads(page_data['revisions'][0]['slots']['main']['*'])
             else:
