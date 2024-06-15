@@ -102,7 +102,6 @@ class LolClient:
         timeline = None
         for _, page_data in result['query']['pages'].items():
             # This is lazy but there's 2 pages total so it's safe tbh
-            print(page_data)
             if 'Timeline' in page_data['title']:
                 timeline = json.loads(page_data['revisions'][0]['slots']['main']['*'])
             else:

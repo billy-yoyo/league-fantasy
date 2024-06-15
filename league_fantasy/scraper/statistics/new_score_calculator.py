@@ -5,14 +5,18 @@ import math
 def calculate_lane_performance(position, duration, stats, score):
   solo_kills = stats.get(StatName.solo_kills)
   pick_with_ally = stats.get(StatName.pick_with_ally)
-  gd15 = stats.get(StatName.gold_diff_15)
+
+  solo_gd15 = stats.get(StatName.gold_diff_15)
+  duo_gd15 = stats.get(StatName.duo_gold_diff_15)
+  gd15 = duo_gd15 if position in ("bot", "support") else solo_gd15
+
   xpd15 = stats.get(StatName.xp_diff_15)
   cspm = stats.get(StatName.cs) / duration
   first_blood = stats.get(StatName.first_blood)
   takedown_all_lanes = stats.get(StatName.takedown_all_lanes_early)
   ganks15 = stats.get(StatName.ganks_15)
 
-  score.add(StatSource.solo_kill, solo_kills * 2)
+  score.add(StatSource.solo_kill, solo_kills * 3)
 
   if takedown_all_lanes > 0:
     score.add(StatSource.takedown_all_lanes_early, takedown_all_lanes * 2)
@@ -72,7 +76,7 @@ def calculate_teamfights(position, duration, stats, score):
   immobilise_and_kill = stats.get(StatName.immobilise_and_kill)
 
   score.add(StatSource.damage_taken, math.floor(damage_taken_pm / 666))
-  score.add(StatSource.self_mitigated, math.floor(self_mitigated_pm / 666))
+  score.add(StatSource.self_mitigated, math.floor(self_mitigated_pm / 333))
   score.add(StatSource.heals_and_shields, math.floor(heal_shield_pm / 50))
   score.add(StatSource.immobilise_and_kill, math.floor(immobilise_and_kill / 5))
   
@@ -83,7 +87,7 @@ def calculate_teamfights(position, duration, stats, score):
     elif dpm < 200:
       score.add(StatSource.dpm, -1)
 
-  score.add(StatSource.immobilisations, math.floor(immobilisations / 20))
+  score.add(StatSource.immobilisations, math.floor(immobilisations / 15))
 
 
 def calculate_scoreline(position, stats, score):
@@ -121,9 +125,9 @@ def calculate_multikill_score(stats):
 def calculate_montage(stats, score):
   alcove_kills = stats.get(StatName.alcove_kills)
   heavy_damage_survive = stats.get(StatName.take_heavy_damage_survive)
+  multikill = calculate_multikill_score(stats)
 
-  calculate_multikill_score(stats)
-
+  score.add(StatSource.multikill, multikill)
   score.add(StatSource.alcove_kills, alcove_kills)
   score.add(StatSource.heavy_damage_and_survive, heavy_damage_survive * 2)
 
@@ -163,7 +167,7 @@ def calculate_score(game, position, stats):
   duration = game.game_duration
   score = ScoreComputer(0)
 
-  score.add(StatSource.games, -13)
+  score.add(StatSource.games, -10)
 
   calculate_lane_performance(position, duration, stats, score)
   calculate_objectives(duration, stats, score)

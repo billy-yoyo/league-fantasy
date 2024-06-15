@@ -15,7 +15,7 @@ def find_frame_for_time(frames, millis):
       closest_frame = frame
   return closest_frame
 
-def calculate_15_min_differences(timeline, game, players, participant_map):
+def calculate_15_min_differences(timeline, game, players, participant_map, team_pids, pid_to_team):
   min15_frame = find_frame_for_time(timeline["frames"], FIFTEEN_MINUTES)
   position_players_map = defaultdict(list)
   for player in players:
@@ -23,6 +23,9 @@ def calculate_15_min_differences(timeline, game, players, participant_map):
   
   player_stats = []
   # calculate @15 difference stats
+  botlane_gd15 = { team_id: 0 for team_id in team_pids }
+  botlane_cs15 = { team_id: 0 for team_id in team_pids }
+
   for position_players in position_players_map.values():
     if len(position_players) != 2:
       continue
@@ -49,6 +52,13 @@ def calculate_15_min_differences(timeline, game, players, participant_map):
     xp_diff = p1xp - p2xp
     cs_diff = p1cs - p2cs
 
+    if player1.position in ("bot", "support"):
+      botlane_gd15[pid_to_team[pid1]] += gold_diff
+      botlane_cs15[pid_to_team[pid1]] += cs_diff
+
+      botlane_gd15[pid_to_team[pid2]] -= gold_diff
+      botlane_cs15[pid_to_team[pid2]] -= cs_diff
+
     player_stats.append(PlayerStat(player=player1, game=game, stat_name=StatName.gold_diff_15, stat_value=gold_diff))
     player_stats.append(PlayerStat(player=player1, game=game, stat_name=StatName.level_diff_15, stat_value=level_diff))
     player_stats.append(PlayerStat(player=player1, game=game, stat_name=StatName.xp_diff_15, stat_value=xp_diff))
@@ -59,6 +69,20 @@ def calculate_15_min_differences(timeline, game, players, participant_map):
     player_stats.append(PlayerStat(player=player2, game=game, stat_name=StatName.xp_diff_15, stat_value=-xp_diff))
     player_stats.append(PlayerStat(player=player2, game=game, stat_name=StatName.cs_diff_15, stat_value=-cs_diff))
   
+  for position, position_players in position_players_map.items():
+    if len(position_players) != 2 or position not in ("bot", "support"):
+      continue
+
+    player1, player2 = position_players
+    pid1 = participant_map[player1.id]
+    pid2 = participant_map[player2.id]
+    
+    player_stats.append(PlayerStat(player=player1, game=game, stat_name=StatName.duo_gold_diff_15, stat_value=botlane_gd15[pid_to_team[pid1]]))
+    player_stats.append(PlayerStat(player=player2, game=game, stat_name=StatName.duo_gold_diff_15, stat_value=botlane_gd15[pid_to_team[pid2]]))
+    
+    player_stats.append(PlayerStat(player=player1, game=game, stat_name=StatName.duo_cs_diff_15, stat_value=botlane_cs15[pid_to_team[pid1]]))
+    player_stats.append(PlayerStat(player=player2, game=game, stat_name=StatName.duo_cs_diff_15, stat_value=botlane_cs15[pid_to_team[pid2]]))
+
   return player_stats
 
 def calculate_bounties(timeline, game, players, participant_map):
@@ -118,24 +142,8 @@ def compute_ganks(team_participants, enemy_participants, pid_to_player, pre15_ga
     for player in top:
       pre15_ganks[player.id] += 1
 
-def calculate_teamfights(data, timeline, game, players, participant_map):
+def calculate_teamfights(data, timeline, game, players, team_pids, pid_to_player):
   teamfights = find_teamfights(timeline)
-  team_pids = defaultdict(list)
-  pid_to_team = {
-    p["participantId"]: p["teamId"] for p in data["participants"]
-  }
-  pid_to_player = {}
-
-  for player in players:
-    pid = participant_map[player.id]
-    team_id = pid_to_team[pid]
-    team_pids[team_id].append(pid)
-    pid_to_player[pid] = player
-  
-  if len(team_pids) != 2:
-    print(f"not exactly 2 teams??")
-    return []
-
   solo_death_in_teamfight = defaultdict(int)
   pre15_ganks = defaultdict(int)
 
@@ -170,10 +178,26 @@ def calculate_teamfights(data, timeline, game, players, participant_map):
 
 def scrape_match_timeline(data, timeline, game, players, participant_map):
   player_stats = []
+
+  team_pids = defaultdict(list)
+  pid_to_team = {
+    p["participantId"]: p["teamId"] for p in data["participants"]
+  }
+  pid_to_player = {}
+
+  for player in players:
+    pid = participant_map[player.id]
+    team_id = pid_to_team[pid]
+    team_pids[team_id].append(pid)
+    pid_to_player[pid] = player
   
-  player_stats += calculate_15_min_differences(timeline, game, players, participant_map)
+  if len(team_pids) != 2:
+    print(f"not exactly 2 teams??")
+    return []
+  
+  player_stats += calculate_15_min_differences(timeline, game, players, participant_map, team_pids, pid_to_team)
   player_stats += calculate_bounties(timeline, game, players, participant_map)
   player_stats += calculate_final_frame(timeline, game, players, participant_map)
-  player_stats += calculate_teamfights(data, timeline, game, players, participant_map)
+  player_stats += calculate_teamfights(data, timeline, game, players, team_pids, pid_to_player)
 
   return player_stats

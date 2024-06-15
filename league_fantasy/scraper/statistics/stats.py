@@ -25,7 +25,9 @@ class StatName:
   quadra_kills = "quadra_kills"
   penta_kills = "penta_kills"
   gold_diff_15 = "gold_diff_15"
+  duo_gold_diff_15 = "duo_gold_diff_15"
   cs_diff_15 = "cs_diff_15"
+  duo_cs_diff_15 = "duo_cs_diff_15"
   xp_diff_15 = "xp_diff_15"
   ganks_15 = "ganks_15"
   level_diff_15 = "level_diff_15"
@@ -96,6 +98,7 @@ class StatSource:
   only_death_in_teamfight_win = "only_death_in_teamfight_win"
   games = "games"
   ganks = "ganks"
+  multikill = "multikill"
 
 ALL_STAT_SOURCES = [key for key in StatSource.__dict__ if not key.startswith("_")]
 
