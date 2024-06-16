@@ -77,7 +77,7 @@ def calculate_teamfights(position, duration, stats, score):
 
   score.add(StatSource.damage_taken, math.floor(damage_taken_pm / 666))
   score.add(StatSource.self_mitigated, math.floor(self_mitigated_pm / 333))
-  score.add(StatSource.heals_and_shields, math.floor(heal_shield_pm / 50))
+  score.add(StatSource.heals_and_shields, math.floor((heal_shield_pm ** 0.9) / 45))
   score.add(StatSource.immobilise_and_kill, math.floor(immobilise_and_kill / 5))
   
   if position != "support":
