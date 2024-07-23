@@ -167,7 +167,7 @@ def calculate_score(game, position, stats):
   duration = game.game_duration
   score = ScoreComputer(0)
 
-  score.add(StatSource.games, -15)
+  score.add(StatSource.games, -10)
 
   calculate_lane_performance(position, duration, stats, score)
   calculate_objectives(duration, stats, score)
