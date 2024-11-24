@@ -3,7 +3,7 @@
 
 {{ graph_data|json_script:"graph_data" }}
 
-<div id="graph" class="tab-item">
+<div id="graph" class="tab-item big-graph">
   <canvas id="stat-graph"></canvas>
 </div>
 
@@ -13,5 +13,11 @@
   new Chart(document.getElementById('stat-graph'), {
     type: 'boxplot',
     data: graphData,
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      outlierBackgroundColor: '#aaa',
+      outlierRadius: 3
+    }
   })
 </script>

@@ -6,11 +6,13 @@
 
 <head>
   <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <script src="https://kit.fontawesome.com/13a2349612.js" crossorigin="anonymous"></script>
   <link rel="stylesheet" href="{% static 'style.css' %}">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
   <link rel="shortcut icon" type="image/svg" href="{% static 'favicon.svg' %}">
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="https://unpkg.com/@sgratzl/chartjs-chart-boxplot@3"></script>
@@ -18,26 +20,73 @@
 </head>
 
 <body>
-  <header>
+  <div class="side-bar" id="side-bar">
     <div class="inner-header">
       <h1>
         <a class="header-row" href="/leaderboard">
-          <img src="{% static 'logo.svg' %}" height="60"></img>
+          <img src="{% static 'logo.svg' %}" height="40"></img>
           <div>Euphoria Draft</div>
         </a>
       </h1>
       <div class="nav-buttons">
-        <a href="/leaderboard" class="nav-button">Leaderboard</a>
-        <a href="/players" class="nav-button">Players</a>
-        <a href="/draft" class="nav-button">Draft</a>
-        <a href="/logout" class="nav-button">Logout ({{ user.username }})</a>
+        <a href="/leaderboard" class="nav-button">
+          <i class="material-icons">leaderboard</i>
+          <span class="nav-label">Leaderboard</span> 
+        </a>
+        <a href="/players" class="nav-button">
+          <i class="material-icons">people</i>
+          <span class="nav-label">Players</span>
+        </a>
+        <a href="/draft" class="nav-button">
+          <i class="material-icons">reduce_capacity</i>
+          <span class="nav-label">Draft</span>
+        </a>
+      </div>
+      <div class="space-filler"></div>
+      <div class="nav-buttons">
+        <a href="/logout" class="nav-button">
+          <i class="material-icons">logout</i>
+          <span class="nav-label">Logout ({{ user.username }})</span>
+        </a>
       </div>
     </div>
-  </header>
+  </div>
+  <div class="side-bar-buttons" id="side-bar-buttons">
+    <button class="side-bar-button close-side-bar" onclick="onCloseSidebar()">
+      <i class="material-icons">close</i>
+    </button>
+    <button class="side-bar-button open-side-bar" onclick="onOpenSidebar()">
+      <i class="material-icons">menu</i>
+    </button>
+  </div>
   <main>
     {% block content %}
     {% endblock %}
   </main>
 </body>
+
+<script>
+  const onCloseSidebar = () => {
+    const sidebar = document.getElementById('side-bar');
+    const sidebarButtons = document.getElementById('side-bar-buttons');
+    if (sidebar && sidebarButtons) {
+      setTimeout(() => {
+        sidebar.classList.remove("open");
+        sidebarButtons.classList.remove("open");
+      })
+    }
+  };
+
+  const onOpenSidebar = () => {
+    const sidebar = document.getElementById('side-bar');
+    const sidebarButtons = document.getElementById('side-bar-buttons');
+    if (sidebar && sidebarButtons) {
+      setTimeout(() => {
+        sidebar.classList.add("open");
+        sidebarButtons.classList.add("open");
+      });
+    }
+  };
+</script>
 
 </html>

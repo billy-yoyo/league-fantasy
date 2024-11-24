@@ -8,6 +8,11 @@ Requires the following python packages:
 * django-apscheduler
 * mwclient
 
+downloading palayer images requires the following:
+
+* beautifulsoup4
+* pillow
+
 ## Setup
 
 * run `python manage.py migrate --settings league_fantasy.settings.[env]`

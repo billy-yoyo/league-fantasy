@@ -1,6 +1,6 @@
 {% load static %}
 
-<div style="display: flex; flex-direction: row; margin-bottom: 1rem;">
+<div style="display: flex; flex-direction: row; margin-bottom: 1rem; margin-top: 2rem;">
     {% for position in positions %}
         <button class="position" data-position="{{position}}" onclick="filterBy(this)">
             <img src="{% static 'positions/'|add:position|add:'.png' %}" width="30" height="30"></img>
@@ -8,9 +8,11 @@
     {% endfor %}
 </div>
 
+<div class="scrollable-table">
 <table>
     <thead>
         <tr>
+            <th scope="col"></th>
             <th scope="col">Player</th>
             <th scope="col">Country</th>
             <th scope="col">Team</th>
@@ -25,10 +27,13 @@
     <tbody>
         {% for player in players %}
             <tr class="player-row" data-position="{{ player.player.position }}">
+                <th scope="row">
+                    <div class="flex-center">
+                        <img src="{% static player.player.id|playerurl %}" height="30"></img>
+
+                    </div>
+                </th>
                 <th scope="row" class="name">
-                    <a class="leaguepedia" target="_blank" href="https://lol.fandom.com/wiki/{{ player.player.overview_page }}">
-                        <img src="{% static 'etc/leaguepedia.webp' %}" width="15"></img>
-                    </a>
                     <a href="/players/{{ player.player.id }}">
                         {{ player.player.in_game_name }}
                     </a>
@@ -58,6 +63,7 @@
         {% endfor %}
     </tbody>
 </table>
+</div>
 
 <script>
     const tableState = { position: null, cur: null };

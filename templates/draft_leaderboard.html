@@ -2,58 +2,92 @@
 
 
 
-<div>
-  <h1 class="fullwidth">
-    <div class="row fullwidth">
-      <a href="/leaderboards"><i class="fa-solid fa-arrow-left"></i></a>
-      <div class="horz-spaced">{{ leaderboard.name }}</div>
-      {% if is_admin %}
-        <a href="/leaderboard/{{ leaderboard.id }}/manage" class="align-right">Manage</a>
-      {% endif %}
-    </div>
-  </h1>
-
-  <table>
-    <thead>
-      <tr>
-        <th scope="col">User</th>
-        {% for position in positions %}
-          <th scope="col" class="player-col">
-            <div class="row">
-              <img src="{% static 'positions/'|add:position|add:'.png' %}" width="30" height="30"></img>
-            </div>
-          </th>
-        {% endfor %}
-        <th scope="col">Score</th>
-      </tr>
-    </thead>
-    {% for draft in drafts %}
-      <tr>
-        <th scope="row">{{ draft.user.username }}</th>
-        {% for position in positions %}
-          <td class="player-col">
-            <a href="../players/{{ draft_player_ids|keyvalue:draft.user.username|keyvalue:position }}">
-              {{ draft_players|keyvalue:draft.user.username|keyvalue:position }}
-            </a>
-          </td>
-        {% endfor %}
-        <td>{{ draft.score }}</td>
-      </tr>
-    {% endfor %}
-  </table>
-
-  {{ graph_data|json_script:"graph_data" }}
-
-  <div id="graph" class="tab-item">
-    <canvas id="draft-graph"></canvas>
+<h1 class="fullwidth leaderboard-header">
+  <div class="row fullwidth">
+    <a href="/leaderboards"><i class="fa-solid fa-arrow-left"></i></a>
+    <div class="horz-spaced">{{ leaderboard.name }}</div>
+    {% if is_admin %}
+      <a href="/leaderboard/{{ leaderboard.id }}/manage" class="align-right manage">Manage</a>
+    {% endif %}
   </div>
+</h1>
 
-  <script>
-    const graphData = JSON.parse(document.getElementById("graph_data").textContent)
-
-    new Chart(document.getElementById('draft-graph'), {
-      type: 'line',
-      data: graphData
-    })
-  </script>
+<div class="draft-column">
+  {% for draft in drafts %}
+    <div class="draft-row">
+      <div class="draft-header">
+        <div class="medal">
+          {% if forloop.counter == 1 %}
+            <i class="material-icons gold">workspace_premium</i>
+          {% elif forloop.counter == 2 %}
+            <i class="material-icons silver">workspace_premium</i>
+          {% elif forloop.counter == 3 %}
+            <i class="material-icons bronze">workspace_premium</i>
+          {% else %}
+            {{ forloop.counter }}
+          {% endif %}
+        </div>
+        <div class="draft-name-and-score">
+          <div class="draft-name">
+            {{ draft.user.username }}
+          </div>
+          <div class="draft-score">
+            {{ draft.score|toint }}
+          </div>
+        </div>
+      </div>
+      <div class="draft-players">
+        {% for position in positions %}
+          {% with player=draft_players|keyvalue:draft.user.username|keyvalue:position %}
+            <div class="draft-player-item">
+              <div class="draft-player-icon">
+                <img src="{% static 'players/'|add:player.id|add:'.png' %}" class="team-icon" width="50"></img>
+              </div>
+              <div class="draft-player-name-and-score">
+                <div class="draft-player-name">
+                  <a href="../players/{{ player.id }}">
+                    {{ player.name }}
+                  </a>
+                </div>
+                <div class="draft-player-score">
+                  {{ player.score|toint }}
+                  <span class="score-pct {% if player.score_percent > 30 %}high{% elif player.score_percent < 15 %}low{% endif %}">({{ player.score_percent|toint }}%)</span>
+                </div>
+              </div>
+            </div>
+          {% endwith %}
+        {% endfor %}
+      </div>
+    </div>
+  {% endfor %}
 </div>
+
+
+
+{{ graph_data|json_script:"graph_data" }}
+
+<div class="space-filler"></div>
+
+<div id="graph" class="tab-item">
+  <canvas id="draft-graph"></canvas>
+</div>
+
+<script>
+  const graphData = JSON.parse(document.getElementById("graph_data").textContent)
+
+  new Chart(document.getElementById('draft-graph'), {
+    type: 'line',
+    data: graphData,
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      scales: {
+        x: {
+          ticks: {
+            display: false
+          }
+        }
+      }
+    }
+  })
+</script>

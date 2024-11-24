@@ -1,15 +1,23 @@
+from datetime import datetime, timedelta
 
 def group_data_by_day(datapoint_source, max_days, get_id, get_score=lambda x: x.score, get_time=lambda x: x.time):
-    days = []
+    
+    days = None
     ids = set()
     for datapoint in datapoint_source:
-        time = get_time(datapoint)
-        if not days or days[-1][0] != time.date():
-            if len(days) >= max_days:
+        date = get_time(datapoint).date()
+        if days is None:
+            days = [(date - timedelta(days=day_offset), {}) for day_offset in range(max_days)]
+
+        day_data = None
+        for day in days:
+            if date == day[0]:
+                day_data = day[1]
                 break
-            days.append((time.date(), {}))
         
-        day_data = days[-1][1]
+        if day_data is None:
+            break
+
         id = get_id(datapoint)
         ids.add(id)
         if id not in day_data:

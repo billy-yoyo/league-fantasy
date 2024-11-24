@@ -52,7 +52,7 @@
       <tr>
         <th class="fix" scope="row">Team</th>
         {% for player in players %}
-          <td class="nopad">
+          <td class="nopad" style="background-color: {{ player.team.background_colour }};">
             <div class="centered">
               <img src="{% static player.team.icon_url %}" class="team-icon" height="20"></img>
             </div>

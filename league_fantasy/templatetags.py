@@ -16,6 +16,10 @@ def toint(value):
     return 0
 
 @register.filter
+def playerurl(value):
+    return f"players/{value}.png"
+
+@register.filter
 def asdecimal(value):
     floatval = float(value)
     if is_int(floatval):
@@ -33,3 +37,16 @@ def money(value):
 @register.filter
 def lower(value):
     return value.lower()
+
+@register.filter
+def positional(value):
+    value = str(value)
+    if value[-1] == "1":
+        value += "st"
+    elif value[-1] == "2":
+        value += "nd"
+    elif value[-1] == "3":
+        value += "rd"
+    else:
+        value += "th"
+    return value

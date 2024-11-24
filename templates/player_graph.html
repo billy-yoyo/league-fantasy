@@ -1,15 +1,27 @@
 {% load static %}
 
 <h1 class="player-title">
-  <img class="team-icon" src="{% static player.team.icon_url %}" class="team-icon" style="background-color: {{ player.team.background_colour }};" height="30"></img>
-  <a href="https://lol.fandom.com/wiki/{{ player.overview_page }}">{{ player_name }}</a>
-  <div class="player-position">
-    (
-      <img class="team-icon" src="{% static 'flags/'|add:player.country|lower|add:'.svg' %}" width="20" height="20"></img>
-      <img class="team-icon" src="{% static 'positions/'|add:player.position|add:'.png' %}" width="20" height="20"></img>
-    )
+  <div class="player-images">  
+    <img src="{% static player.id|playerurl %}" class="player-icon" height="50"></img>
   </div>
-  
+
+  <div class="player-name-and-tags">
+    <a href="https://lol.fandom.com/wiki/{{ player.overview_page }}">{{ player_name }}</a>
+    <div class="sub-images">
+      <div class="sub-image">
+        <img class="team-icon" src="{% static player.team.icon_url %}" class="team-icon" style="background-color: {{ player.team.background_colour }};" width="15"></img>
+      </div>
+      <div class="space-filler"></div>
+      <div class="sub-image">
+        <img src="{% static 'flags/'|add:player.country|lower|add:'.svg' %}" width="15"></img>
+      </div>
+      <div class="space-filler"></div>
+      <div class="sub-image">
+        <img src="{% static 'positions/'|add:player.position|add:'.png' %}" width="15"></img>
+      </div>
+    </div>
+  </div>
+
 </h1>
 
 <div class="scrollable-table">
@@ -69,6 +81,8 @@
     type: 'line',
     data: graphData,
     options: {
+      responsive: true,
+      maintainAspectRatio: false,
       plugins: {
         legend: {
           display: false

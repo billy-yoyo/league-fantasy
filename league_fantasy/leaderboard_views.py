@@ -3,6 +3,7 @@ from django.shortcuts import render
 from django.contrib.auth import get_user_model
 from .models import UserDraft, UserDraftPlayer, UserDraftScorePoint, Leaderboard, LeaderboardMember, PlayerTournamentScore
 from collections import defaultdict
+from dataclasses import dataclass
 from .graphing.group_by_time import group_data_by_day
 from .helper import authorized, get_tournament
 
@@ -125,7 +126,15 @@ def all_draft_leaderboards(request):
     leaderboards = [m.leaderboard for m in memberships]
     return render(request, "all_draft_leaderboards_page.html", { "leaderboards": leaderboards })
 
-GRAPH_DATA_POINTS = 10
+GRAPH_DATA_POINTS = 30
+@dataclass
+class DraftPlayerData:
+    name: str
+    score: int
+    score_percent: float
+    team_url: str
+    team_background_colour: str
+    id: str
 
 @authorized
 def draft_leaderboard(request, leaderboard_id=None):
@@ -151,7 +160,6 @@ def draft_leaderboard(request, leaderboard_id=None):
     
     drafts = UserDraft.objects.filter(user__in=members).order_by("-score").all()
     draft_players = defaultdict(dict)
-    draft_player_ids = defaultdict(dict)
     user_colours = defaultdict(lambda: "#000000")
     positions = ("top", "jungle", "mid", "bot", "support")
     player_scores = {}
@@ -162,13 +170,25 @@ def draft_leaderboard(request, leaderboard_id=None):
               tournament_score = PlayerTournamentScore.objects.filter(player=player.player, tournament=tournament).first()
               player_scores[player.id] = tournament_score.score if tournament_score else player.player.score
             
-            draft_players[draft.user.username][player.player.position] = f"{player.player.team.short_name} {player.player.in_game_name} ({player_scores[player.id]})"
-            draft_player_ids[draft.user.username][player.player.position] = player.player.id
+            draft_players[draft.user.username][player.player.position] = DraftPlayerData(
+                name=f"{player.player.team.short_name} {player.player.in_game_name}",
+                score=player_scores[player.id],
+                score_percent=player_scores[player.id] * 100 / max(draft.score, 1),
+                team_url=player.player.team.icon_url,
+                team_background_colour=player.player.team.background_colour,
+                id=str(player.player.id)
+            )
             user_colours[draft.user.username] = draft.colour
         for position in positions:
             if position not in draft_players[draft.user.username]:
-                draft_players[draft.user.username][position] = "---"
-                draft_player_ids[draft.user.username][position] = ""
+                draft_players[draft.user.username][position] = DraftPlayerData(
+                   name="---",
+                   score=0,
+                   score_percent=0,
+                   team_url="",
+                   team_background_colour="#fff",
+                   id="---"
+                )
 
     labels, raw_datasets = group_data_by_day(
        UserDraftScorePoint.objects.filter(draft__in=drafts).order_by("-time"),
@@ -193,7 +213,6 @@ def draft_leaderboard(request, leaderboard_id=None):
         "drafts": drafts,
         "positions": positions,
         "draft_players": draft_players,
-        "draft_player_ids": draft_player_ids,
         "graph_data": graph_data,
         "leaderboard": leaderboard,
         "is_admin": membership.is_admin
