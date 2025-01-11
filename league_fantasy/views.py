@@ -22,32 +22,36 @@ def home(request):
 
 @authorized
 def player_leaderboard(request):
-    tournament = get_tournament(request)
+    try:
+        tournament = get_tournament(request)
 
-    tournament_players = PlayerTournamentScore.objects.filter(tournament=tournament).order_by("-score").all()
-    player_game_counts = GamePlayer.objects.filter(game__tournament=tournament).values("player__id").annotate(gcount=Count("player__id"))
-    game_counts_map = defaultdict(int)
-    for result in player_game_counts:
-        game_counts_map[result["player__id"]] = result["gcount"]
+        tournament_players = PlayerTournamentScore.objects.filter(tournament=tournament).order_by("-score").all()
+        player_game_counts = GamePlayer.objects.filter(game__tournament=tournament).values("player__id").annotate(gcount=Count("player__id"))
+        game_counts_map = defaultdict(int)
+        for result in player_game_counts:
+            game_counts_map[result["player__id"]] = result["gcount"]
 
-    positions = ("top", "jungle", "mid", "bot", "support")
+        positions = ("top", "jungle", "mid", "bot", "support")
 
-    csv = "\\n".join(
-        ",".join([
-            str(tp.player.team.short_name),
-            str(tp.player.in_game_name),
-            str(tp.player.position),
-            str(game_counts_map[tp.player.id]),
-            str(tp.score)
-        ]) for tp in tournament_players 
-    )
+        csv = "\\n".join(
+            ",".join([
+                str(tp.player.team.short_name),
+                str(tp.player.in_game_name),
+                str(tp.player.position),
+                str(game_counts_map[tp.player.id]),
+                str(tp.score)
+            ]) for tp in tournament_players 
+        )
 
-    return render(request, "player_page.html", {
-        "players": tournament_players,
-        "positions": positions,
-        "csv": csv,
-        "with_cost": False
-    })
+        return render(request, "player_page.html", {
+            "players": tournament_players,
+            "positions": positions,
+            "csv": csv,
+            "with_cost": False
+        })
+    except Exception as e:
+        print(e)
+        
 
 GRAPH_DATA_POINTS = 20
 BUDGET = 90_000
