@@ -198,6 +198,8 @@ def draft_leaderboard(request, leaderboard_id=None):
                     id="---"
                   )
 
+
+
       labels, raw_datasets = group_data_by_day(
         UserDraftScorePoint.objects.filter(draft__in=drafts).order_by("-time"),
         GRAPH_DATA_POINTS,
@@ -218,7 +220,7 @@ def draft_leaderboard(request, leaderboard_id=None):
       }
 
       return render(request, "draft_leaderboard_page.html", {
-          "drafts": drafts,
+          "drafts": [draft for draft in drafts if draft.user.username in draft_players],
           "positions": positions,
           "draft_players": draft_players,
           "graph_data": graph_data,
