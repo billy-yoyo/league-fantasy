@@ -182,6 +182,11 @@ def draft_leaderboard(request, leaderboard_id=None):
                   id=str(player.player.id)
               )
               user_colours[draft.user.username] = draft.colour
+
+          if all(position not in draft_players[draft.user.username] for position in positions):
+            del draft_players[draft.user.username]
+            continue 
+
           for position in positions:
               if position not in draft_players[draft.user.username]:
                   draft_players[draft.user.username][position] = DraftPlayerData(
