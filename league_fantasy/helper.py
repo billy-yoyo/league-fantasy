@@ -3,6 +3,7 @@ from .models import Tournament
 
 def authorized(func):
   def wrapper(request, *args, **kwargs):
+    print("checking auth")
     if not request.user.is_authenticated:
       return HttpResponseRedirect("/accounts/login")
     return func(request, *args, **kwargs)

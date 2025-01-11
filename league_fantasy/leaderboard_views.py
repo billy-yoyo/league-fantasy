@@ -138,82 +138,87 @@ class DraftPlayerData:
 
 @authorized
 def draft_leaderboard(request, leaderboard_id=None):
-    tournament = get_tournament(request)
+  print("getting draft leaderboard")
+  try:
+      tournament = get_tournament(request)
 
-    leaderboard = None
-    if leaderboard_id is None:
-        memberships = LeaderboardMember.objects.filter(user=request.user).all()
-        if len(memberships) == 1:
-            return HttpResponseRedirect(f"/leaderboard/{memberships[0].leaderboard.id}")
-    else:
-        membership = LeaderboardMember.objects.filter(user=request.user).filter(leaderboard__id=leaderboard_id).first()
-        if membership is not None:
-            leaderboard = membership.leaderboard
-    
-    if leaderboard is None:
-        return HttpResponseRedirect("/leaderboards")
+      leaderboard = None
+      if leaderboard_id is None:
+          memberships = LeaderboardMember.objects.filter(user=request.user).all()
+          if len(memberships) == 1:
+              return HttpResponseRedirect(f"/leaderboard/{memberships[0].leaderboard.id}")
+      else:
+          membership = LeaderboardMember.objects.filter(user=request.user).filter(leaderboard__id=leaderboard_id).first()
+          if membership is not None:
+              leaderboard = membership.leaderboard
+      
+      if leaderboard is None:
+          return HttpResponseRedirect("/leaderboards")
 
-    members = [lm.user for lm in LeaderboardMember.objects.filter(leaderboard=leaderboard).all()]
-    membership = LeaderboardMember.objects.filter(user=request.user).filter(leaderboard=leaderboard).first()
-    if membership is None:
-        return HttpResponseRedirect("/leaderboards")
-    
-    drafts = UserDraft.objects.filter(user__in=members).order_by("-score").all()
-    draft_players = defaultdict(dict)
-    user_colours = defaultdict(lambda: "#000000")
-    positions = ("top", "jungle", "mid", "bot", "support")
-    player_scores = {}
+      members = [lm.user for lm in LeaderboardMember.objects.filter(leaderboard=leaderboard).all()]
+      membership = LeaderboardMember.objects.filter(user=request.user).filter(leaderboard=leaderboard).first()
+      if membership is None:
+          return HttpResponseRedirect("/leaderboards")
+      
+      drafts = UserDraft.objects.filter(user__in=members).order_by("-score").all()
+      draft_players = defaultdict(dict)
+      user_colours = defaultdict(lambda: "#000000")
+      positions = ("top", "jungle", "mid", "bot", "support")
+      player_scores = {}
 
-    for draft in drafts:
-        for player in UserDraftPlayer.objects.filter(draft=draft):
-            if player.id not in player_scores:
-              tournament_score = PlayerTournamentScore.objects.filter(player=player.player, tournament=tournament).first()
-              player_scores[player.id] = tournament_score.score if tournament_score else player.player.score
-            
-            draft_players[draft.user.username][player.player.position] = DraftPlayerData(
-                name=f"{player.player.team.short_name} {player.player.in_game_name}",
-                score=player_scores[player.id],
-                score_percent=player_scores[player.id] * 100 / max(draft.score, 1),
-                team_url=player.player.team.icon_url,
-                team_background_colour=player.player.team.background_colour,
-                id=str(player.player.id)
-            )
-            user_colours[draft.user.username] = draft.colour
-        for position in positions:
-            if position not in draft_players[draft.user.username]:
-                draft_players[draft.user.username][position] = DraftPlayerData(
-                   name="---",
-                   score=0,
-                   score_percent=0,
-                   team_url="",
-                   team_background_colour="#fff",
-                   id="---"
-                )
+      for draft in drafts:
+          for player in UserDraftPlayer.objects.filter(draft=draft):
+              if player.id not in player_scores:
+                tournament_score = PlayerTournamentScore.objects.filter(player=player.player, tournament=tournament).first()
+                player_scores[player.id] = tournament_score.score if tournament_score else player.player.score
+              
+              draft_players[draft.user.username][player.player.position] = DraftPlayerData(
+                  name=f"{player.player.team.short_name} {player.player.in_game_name}",
+                  score=player_scores[player.id],
+                  score_percent=player_scores[player.id] * 100 / max(draft.score, 1),
+                  team_url=player.player.team.icon_url,
+                  team_background_colour=player.player.team.background_colour,
+                  id=str(player.player.id)
+              )
+              user_colours[draft.user.username] = draft.colour
+          for position in positions:
+              if position not in draft_players[draft.user.username]:
+                  draft_players[draft.user.username][position] = DraftPlayerData(
+                    name="---",
+                    score=0,
+                    score_percent=0,
+                    team_url="",
+                    team_background_colour="#fff",
+                    id="---"
+                  )
 
-    labels, raw_datasets = group_data_by_day(
-       UserDraftScorePoint.objects.filter(draft__in=drafts).order_by("-time"),
-       GRAPH_DATA_POINTS,
-       lambda x: x.draft.user.username
-    )
+      labels, raw_datasets = group_data_by_day(
+        UserDraftScorePoint.objects.filter(draft__in=drafts).order_by("-time"),
+        GRAPH_DATA_POINTS,
+        lambda x: x.draft.user.username
+      )
 
-    datasets = [{
-      "label": username,
-      "data": data,
-      "fill": False,
-      "borderColor": user_colours[username],
-      "tension": 0.1
-    } for username, data in raw_datasets]
+      datasets = [{
+        "label": username,
+        "data": data,
+        "fill": False,
+        "borderColor": user_colours[username],
+        "tension": 0.1
+      } for username, data in raw_datasets]
 
-    graph_data = {
-        "labels": labels,
-        "datasets": datasets
-    }
+      graph_data = {
+          "labels": labels,
+          "datasets": datasets
+      }
 
-    return render(request, "draft_leaderboard_page.html", {
-        "drafts": drafts,
-        "positions": positions,
-        "draft_players": draft_players,
-        "graph_data": graph_data,
-        "leaderboard": leaderboard,
-        "is_admin": membership.is_admin
-    })
+      return render(request, "draft_leaderboard_page.html", {
+          "drafts": drafts,
+          "positions": positions,
+          "draft_players": draft_players,
+          "graph_data": graph_data,
+          "leaderboard": leaderboard,
+          "is_admin": membership.is_admin
+      })
+  except Exception as e:
+    print(e)
+
