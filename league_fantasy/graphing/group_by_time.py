@@ -23,7 +23,7 @@ def group_data_by_day(datapoint_source, max_days, get_id, get_score=lambda x: x.
         if id not in day_data:
             day_data[id] = get_score(datapoint)
 
-    days = days[::-1]
+    days = days[::-1] if days is not None else []
 
     datasets = []
     # fill in gaps
