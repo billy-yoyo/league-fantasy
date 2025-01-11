@@ -6,6 +6,7 @@ from collections import defaultdict
 from dataclasses import dataclass
 from .graphing.group_by_time import group_data_by_day
 from .helper import authorized, get_tournament
+import traceback
 
 @authorized
 def create_leaderboard(request):
@@ -219,6 +220,6 @@ def draft_leaderboard(request, leaderboard_id=None):
           "leaderboard": leaderboard,
           "is_admin": membership.is_admin
       })
-  except Exception as e:
-    print(e)
+  except Exception:
+    print(traceback.format_exc())
 
