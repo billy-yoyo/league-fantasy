@@ -40,7 +40,6 @@ class Command(BaseCommand):
     scheduler = BlockingScheduler(timezone=settings.TIME_ZONE)
     scheduler.add_jobstore(DjangoJobStore(), "default")
 
-    """
     scheduler.add_job(
       daily_refresh_job,
       trigger=CronTrigger(hour=3, minute=0), # 3AM every day
@@ -50,7 +49,6 @@ class Command(BaseCommand):
       replace_existing=True,
     )
     logger.info("Added job 'daily_refresh_job'.")
-    """
 
     scheduler.add_job(
       delete_old_job_executions,
