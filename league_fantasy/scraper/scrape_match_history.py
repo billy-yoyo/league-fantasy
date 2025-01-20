@@ -34,6 +34,7 @@ def get_or_create_team(full_name, short_name, region):
   return team
 
 def get_or_create_player(tournament, team, in_game_name, position, country, overview_page):
+  print("player ", tournament, " ", team, " ", in_game_name, " ", position, " ", country, " ", overview_page)
   player = Player.objects.filter(in_game_name__iexact=in_game_name).first()
   if not player:
     player = Player(
@@ -60,39 +61,9 @@ def get_or_create_player(tournament, team, in_game_name, position, country, over
 
 POSITIONS = ["top", "jungle", "mid", "bot", "support"]
 
-ROSTER_OVERRIDES = {
-  "fnc": (
-    "Oscarinin;;Razork;;Humanoid;;Noah (Oh Hyeon-taek);;Jun (Yoon Se-jun);;Nightshare;;Gaax",
-    "Top;;Jungle;;Mid;;Bot;;Support;;Coach;;Coach"
-  ),
-
-  "g2": (
-    "BrokenBlade;;Yike;;Caps;;Hans Sama;;Mikyx;;Dylan Falco;;Rodrigo",
-    "Top;;Jungle;;Mid;;Bot;;Support;;Coach;;Coach"
-  ),
-
-  "mdk": (
-    "Myrwn;;Elyoya;;Fresskowy;;Supa;;Alvaro (Álvaro Fernández);;Melzhet;;Zeph",
-    "Top;;Jungle;;Mid;;Bot;;Support;;Coach;;Coach"
-  ),
-
-  "bds": (
-    "Adam (Adam Maanane);;Sheo;;nuc;;Ice (Yoon Sang-hoon);;Labrov;;Striker (Yanis Kella);;MenQ",
-    "Top;;Jungle;;Mid;;Bot;;Support;;Coach;;Coach"
-  ),
-
-  "th": (
-    "Wunder;;Jankos;;Zwyroo;;Flakked;;Trymbi;;Peter Dun;;Kirei",
-    "Top;;Jungle;;Mid;;Bot;;Support;;Coach;;Coach"
-  )
-}
-
 def get_team_player_and_positions(short_name, team_data):
-  if short_name.lower() in ROSTER_OVERRIDES:
-    roster, roles = ROSTER_OVERRIDES[short_name.lower()]
-  else:
-    roster = team_data["RosterLinks"]
-    roles = team_data["Roles"]
+  roster = team_data["RosterLinks"]
+  roles = team_data["Roles"]
   roster = roster.split(";;")
   roles = roles.split(";;")
   if len(roster) != len(roles):
