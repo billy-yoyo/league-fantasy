@@ -20,12 +20,12 @@ def playerurl(value):
     return f"players/{value}.png"
 
 @register.filter
-def asdecimal(value):
+def asdecimal(value, precision=2):
     floatval = float(value)
     if is_int(floatval):
         return str(int(floatval))
     else:
-        return f"{floatval:.2f}"
+        return f"{floatval:.{precision}f}"
     
 @register.filter
 def money(value):

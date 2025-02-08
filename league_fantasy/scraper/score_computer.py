@@ -1,16 +1,17 @@
 from collections import defaultdict
 
 class ScoreComputer:
-  def __init__(self, score):
+  def __init__(self, score, multiplier=1):
     self.score = score
     self.score_sources = defaultdict(int)
+    self.multiplier = multiplier
   
   def get(self, source):
     return self.score_sources.get(source, 0)
 
   def add(self, name, value):
-    self.score += value
-    self.score_sources[name] += value
+    self.score += value * self.multiplier
+    self.score_sources[name] += value * self.multiplier
 
   def merge(self, score):
     self.score += score.score

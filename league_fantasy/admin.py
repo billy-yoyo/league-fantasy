@@ -52,7 +52,7 @@ class GameAdmin(admin.ModelAdmin):
   actions = [
     update_game_statistics
   ]
-  list_display = ["id", "rpgid", "team_a", "team_b", "winner", "time", "tournament", "statistics_loaded"]
+  list_display = ["id", "match_id", "rpgid", "team_a", "team_b", "winner", "time", "tournament", "statistics_loaded"]
 
 class UserDraftAdmin(admin.ModelAdmin):
   list_display = ["user", "score"]

@@ -49,9 +49,9 @@
           </a>
         </th>
         {% for score in scores %}
-          <td>{% if score|keyvalue:stat_source.0 is not None %} {{ score|keyvalue:stat_source.0|toint }} {% else %} 0 {% endif %}</td>
+          <td>{% if score|keyvalue:stat_source.0 is not None %} {{ score|keyvalue:stat_source.0|asdecimal:1 }} {% else %} 0 {% endif %}</td>
         {% endfor %}
-        <td class="total"> {{ source_totals|keyvalue:stat_source.0|toint }} </td>
+        <td class="total"> {{ source_totals|keyvalue:stat_source.0|asdecimal:1 }} </td>
       </tr>
     {% endfor %}
     <tr>
@@ -61,9 +61,9 @@
         </a>
       </th>
       {% for score in scores %}
-        <td>{{ score.score }}</td>
+        <td>{{ score.score|asdecimal:1 }}</td>
       {% endfor %}
-      <td>{{ player_score }}</td>
+      <td>{{ player_score|asdecimal:1 }}</td>
     </tr>
   </table>
 </div>

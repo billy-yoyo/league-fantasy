@@ -141,6 +141,8 @@ def scrape_match_list(tournament):
     else:
       winner = team_b.id
 
+    match_id = match["MatchId"] or ""
+
     game = Game.objects.filter(rpgid=rpgid).first()
     if not game:
       game = Game(
@@ -150,6 +152,7 @@ def scrape_match_list(tournament):
         tournament=tournament,
         time=time,
         rpgid=rpgid,
+        match_id=match_id,
         statistics_loaded=False
       )
       game.save()
@@ -160,7 +163,8 @@ def scrape_match_list(tournament):
       game.tournament = tournament
       game.time = time
       game.rpgid  = rpgid
-      game.save
+      game.match_id = match_id
+      game.save()
     
     games.append(game)
   return games

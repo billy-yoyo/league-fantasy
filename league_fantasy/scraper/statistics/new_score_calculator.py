@@ -163,9 +163,9 @@ def calculate_support(stats, score):
     score.add(StatSource.kp, -2)
 
 
-def calculate_score(game, position, stats):
+def calculate_score(game, position, stats, multiplier):
   duration = game.game_duration
-  score = ScoreComputer(0)
+  score = ScoreComputer(0, multiplier)
 
   score.add(StatSource.games, -10)
 

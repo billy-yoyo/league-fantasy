@@ -57,7 +57,7 @@
                 {% if with_cost %}
                     <td>{{ player.cost|money }}</td>
                 {% else %}
-                    <td>{{ player.score }}</td>
+                    <td>{{ player.score|toint }}</td>
                 {% endif %}
             </tr>
         {% endfor %}

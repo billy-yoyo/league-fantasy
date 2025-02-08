@@ -36,6 +36,7 @@ class Game(models.Model):
   rpgid = models.CharField(max_length=70)
   statistics_loaded = models.BooleanField(default=False)
   game_duration = models.FloatField(default=1)
+  match_id = models.CharField(max_length=255, default="")
 
   def __str__(self):
     return self.rpgid
@@ -96,6 +97,7 @@ class PlayerStat(models.Model):
 class UserDraft(models.Model):
   user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
   score = models.FloatField()
+  score_offset = models.FloatField(default=0)
   colour = models.CharField(max_length=10, default="#000000")
 
   def __str__(self):

@@ -58,80 +58,26 @@ def calculate_support_score(game_length_minutes, stats):
   support_score = math.floor((assists - (deaths / 2)) * 15 // game_length_minutes)
   return support_score
 
-def calculate_score_for_game(game, position, stats):
-  game_length_minutes = game.game_duration
-
-  score = ScoreComputer(0)
-
-  score.add("games", -10)
-
-  score.add("kda", calculate_kda_score(position, stats))
-  score.add("kp", calculate_kill_participation_score(position, stats))
-  score.add("multikill", calculate_multikill_score(position, stats))
-
-  if position == "support":
-    score.add("support", calculate_support_score(game_length_minutes, stats))
-
-  gold_diff_15 = stats.get(StatName.gold_diff_15, 0)
-  xp_diff_15 = stats.get(StatName.xp_diff_15, 0)
-  dpm = stats.get(StatName.total_damage_to_champion, 0) / game_length_minutes
-  stolen_objectives = stats.get(StatName.objectives_stolen, 0)
-  vision_score = stats.get(StatName.vision_score, 0)
-  self_mitigated = stats.get(StatName.self_mitigated, 0)
-  damage_share = stats.get(StatName.dmg_share, 0) * 100
-  turret_damage = stats.get(StatName.turret_damage, 0)
-  lost_shutdown = stats.get(StatName.shutdown_lost, 0)
-  cspm = stats.get(StatName.cs, 0) / game_length_minutes
-  cc_time = stats.get(StatName.cc_time_others, 0)
-  damage_taken = stats.get(StatName.damage_taken, 0)
-  heals = stats.get(StatName.ally_heal, 0)
-  shields = stats.get(StatName.total_ally_shielded, 0)
-  solo_kills = stats.get(StatName.solo_kills, 0)
-  alcove_kills = stats.get(StatName.alcove_kills, 0)
-  turret_plates = stats.get(StatName.turret_plates, 0)
-
-  if gold_diff_15 > 1000:
-    score.add("gd15", 3)
-  elif gold_diff_15 > 0:
-    score.add("gd15", 1)
-
-  if xp_diff_15 > 1000:
-    score.add("xp15", 3)
-  elif xp_diff_15 > 0:
-    score.add("xp15", 1)
-
-  if dpm >= 400:
-    score.add("dpm", math.floor(dpm // 200) - 1)
-  elif dpm < 200:
-    score.add("dpm", -1)
-
-  if damage_share > 30:
-    score.add("dmg%", 2)
-
-  if turret_damage > 5000:
-    score.add("turret", math.floor((turret_damage - 5000) // 1000))
-
-  if cspm >= 8:
-    score.add("cspm", math.floor(cspm - 8))
-
-  if alcove_kills > 0:
-    score.add("alcove", alcove_kills)
-
-  score.add("shutdown", -math.floor(lost_shutdown // 300))
-  score.add("stolen", stolen_objectives * 5)
-  score.add("vision", math.floor(vision_score // game_length_minutes))
-  score.add("self_mitigated", math.floor(self_mitigated // (666 * game_length_minutes)))
-  score.add("damage_taken", math.floor(damage_taken // (666 * game_length_minutes)))
-  score.add("cc", math.floor(cc_time // 13))
-  score.add("heals_and_shields", math.floor((heals + shields) // (50 * game_length_minutes)))
-  score.add("solo_kills", solo_kills * 2)
-  score.add("turret_plates", turret_plates)
-
-  return score
+def count_match_stats(games):
+  match_wins = defaultdict(lambda: defaultdict(int))
+  for game in games:
+    if game.match_id:
+      match_wins[game.match_id][game.winner] += 1
+  
+  match_multipliers = defaultdict(int)
+  for match_id, win_counts in match_wins.items():
+    max_wins = max(win_counts.values())
+    total_wins = sum(win_counts.values())
+    match_multipliers[match_id] = max_wins / total_wins
+  
+  return match_multipliers
 
 def get_player_score_sources_per_game_for_tournament(player, tournament):
   game_scores = []
-  for game in Game.objects.filter(tournament=tournament).order_by("time"):
+  games = [game for game in Game.objects.filter(tournament=tournament).order_by("time")]
+  match_multipliers = count_match_stats(games)
+
+  for game in games:
     stats = defaultdict(int)
     for stat in PlayerStat.objects.filter(game=game).filter(player=player).all():
       stats[stat.stat_name] = stat.stat_value
@@ -142,8 +88,7 @@ def get_player_score_sources_per_game_for_tournament(player, tournament):
     position = player.position
     if game_player:
       position = game_player.position
-    #game_score = calculate_score_for_game(game, position, stats)
-    game_score = new_calculate_score(game, position, stats)
+    game_score = new_calculate_score(game, position, stats, match_multipliers.get(game.match_id, 1))
     game_scores.append((game, game_score))
   return sorted(game_scores, key=lambda x: x[0].time)
 
@@ -151,10 +96,12 @@ def get_player_score_sources_per_game_for_tournament(player, tournament):
 def update_player_score(tournament_player, time):
   player = tournament_player.player
   tournament = tournament_player.tournament
+  games = [game for game in Game.objects.filter(tournament=tournament).order_by("time")]
+  match_multipliers = count_match_stats(games)
 
   score = ScoreComputer(0)
   total_games = 0
-  for game in Game.objects.filter(tournament=tournament):
+  for game in games:
     stats = defaultdict(int)
     for stat in PlayerStat.objects.filter(game=game).filter(player=player):
       stats[stat.stat_name] = stat.stat_value
@@ -164,8 +111,7 @@ def update_player_score(tournament_player, time):
     position = player.position
     if game_player:
       position = game_player.position
-    #game_score = calculate_score_for_game(game, position, stats)
-    game_score = new_calculate_score(game, position, stats)
+    game_score = new_calculate_score(game, position, stats, match_multipliers.get(game.match_id, 1))
     score.merge(game_score)
     total_games += 1
 
@@ -183,7 +129,7 @@ def update_user_draft(user_draft, time):
   for player in UserDraftPlayer.objects.filter(draft=user_draft):
     score += player.player.score
   
-  user_draft.score = score
+  user_draft.score = score + user_draft.score_offset
   user_draft.save()
 
   UserDraftScorePoint(draft=user_draft, score=score, time=time).save()
