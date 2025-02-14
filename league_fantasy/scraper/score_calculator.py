@@ -128,8 +128,10 @@ def update_user_draft(user_draft, time):
   score = 0
   for player in UserDraftPlayer.objects.filter(draft=user_draft):
     score += player.player.score
+
+  score += user_draft.score_offset
   
-  user_draft.score = score + user_draft.score_offset
+  user_draft.score = score
   user_draft.save()
 
   UserDraftScorePoint(draft=user_draft, score=score, time=time).save()

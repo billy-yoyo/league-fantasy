@@ -128,7 +128,7 @@ def submit_draft(request):
 
     try:
         user_draft = UserDraft.objects.get(user=request.user)
-        user_draft.score = score
+        user_draft.score = score + user_draft.score_offset
         user_draft.save()
     except:
         user_draft = UserDraft(user=request.user, score=score)
