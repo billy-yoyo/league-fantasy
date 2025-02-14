@@ -32,7 +32,7 @@
             {{ draft.user.username }}
           </div>
           <div class="draft-score">
-            {{ draft.score|toint }}
+            {{ draft.score|toint }} {% if draft.score_offset > 0 %}({{ draft.partial_score|toint  }}){% endif %}
           </div>
         </div>
       </div>

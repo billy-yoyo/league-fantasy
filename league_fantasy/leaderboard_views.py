@@ -168,6 +168,7 @@ def draft_leaderboard(request, leaderboard_id=None):
       player_scores = {}
 
       for draft in drafts:
+          draft.partial_score = draft.score - draft.score_offset
           for player in UserDraftPlayer.objects.filter(draft=draft):
               if player.id not in player_scores:
                 tournament_score = PlayerTournamentScore.objects.filter(player=player.player, tournament=tournament).first()
