@@ -1,33 +1,29 @@
 import requests
-from bs4 import BeautifulSoup
 from django.core.management.base import BaseCommand, CommandParser
 from PIL import Image
 from io import BytesIO
 from ...models import PlayerTournamentScore, Player
 import os
 import urllib
+import re
 
 PLAYER_IMAGES = os.path.join(os.path.dirname(__file__), "..", "..", "static", "players")
+
+meta_regex = re.compile(r'<meta\s+property="og:image"\s+content="([^"]+)"\s*>')
 
 def get_player_image_url(player_name):
   quoted_name = urllib.parse.quote(player_name.replace(" ", "_"))
   url = f"https://lol.fandom.com/wiki/{quoted_name}"
-  print(f"fetching {url}")
   resp = requests.get(url)
   html = resp.text
-  print("fetched, parsing html")
-  soup = BeautifulSoup(html, "lxml")
-  print("parsed, finding meta tag")
-  meta = soup.find("meta", { "property": "og:image" })
-  print(f"found meta {meta.attrs['content']}")
-  return meta.attrs["content"]
+  for match in meta_regex.findall(html):
+    return match
 
 def download_player_image(player_id, image_url):
   if not os.path.exists(PLAYER_IMAGES):
     os.mkdir(PLAYER_IMAGES)
   
   resp = requests.get(image_url)
-  print("fetched image")
   image = Image.open(BytesIO(resp.content))
   image.save(os.path.join(PLAYER_IMAGES, f"{player_id}.png"))
 
