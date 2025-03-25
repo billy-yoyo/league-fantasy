@@ -12,10 +12,12 @@ PLAYER_IMAGES = os.path.join(os.path.dirname(__file__), "..", "..", "static", "p
 def get_player_image_url(player_name):
   quoted_name = urllib.parse.quote(player_name.replace(" ", "_"))
   url = f"https://lol.fandom.com/wiki/{quoted_name}"
+  print(f"fetching {url}")
   resp = requests.get(url)
   html = resp.text
   soup = BeautifulSoup(html, "lxml")
   meta = soup.find("meta", { "property": "og:image" })
+  print(f"found meta {meta.attrs["content"]}")
   return meta.attrs["content"]
 
 def download_player_image(player_id, image_url):
@@ -23,6 +25,7 @@ def download_player_image(player_id, image_url):
     os.mkdir(PLAYER_IMAGES)
   
   resp = requests.get(image_url)
+  print("fetched image")
   image = Image.open(BytesIO(resp.content))
   image.save(os.path.join(PLAYER_IMAGES, f"{player_id}.png"))
 
