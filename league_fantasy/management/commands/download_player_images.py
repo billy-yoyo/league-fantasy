@@ -15,7 +15,9 @@ def get_player_image_url(player_name):
   print(f"fetching {url}")
   resp = requests.get(url)
   html = resp.text
+  print("fetched, parsing html")
   soup = BeautifulSoup(html, "lxml")
+  print("parsed, finding meta tag")
   meta = soup.find("meta", { "property": "og:image" })
   print(f"found meta {meta.attrs['content']}")
   return meta.attrs["content"]
