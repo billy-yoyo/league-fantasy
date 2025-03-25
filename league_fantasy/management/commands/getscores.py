@@ -20,7 +20,7 @@ class Command(BaseCommand):
 
     rows = []
     for player in PlayerTournamentScore.objects.filter(tournament__id=tournamnet_id).all():
-      games = GamePlayer.objects.filter(player=player, game__tournament__id=tournamnet_id).count()
+      games = GamePlayer.objects.filter(player=player.player, game__tournament__id=tournamnet_id).count()
       rows.append([player.player.in_game_name.lower(), player.score, games])
 
     with open(csv_file, "w", newline="") as f:
