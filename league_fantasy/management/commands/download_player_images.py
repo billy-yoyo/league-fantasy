@@ -1,22 +1,23 @@
 import requests
-from bs4 import BeautifulSoup
 from django.core.management.base import BaseCommand, CommandParser
 from PIL import Image
 from io import BytesIO
 from ...models import PlayerTournamentScore, Player
 import os
 import urllib
+import re
 
 PLAYER_IMAGES = os.path.join(os.path.dirname(__file__), "..", "..", "static", "players")
 
+meta_regex = re.compile(r'<meta\s+property="og:image"\s+content="([^"]+)"\s*>')
+
 def get_player_image_url(player_name):
   quoted_name = urllib.parse.quote(player_name.replace(" ", "_"))
-
-  resp = requests.get(f"https://lol.fandom.com/wiki/{quoted_name}")
+  url = f"https://lol.fandom.com/wiki/{quoted_name}"
+  resp = requests.get(url)
   html = resp.text
-  soup = BeautifulSoup(html, "lxml")
-  image = soup.select_one("#infoboxPlayer .image img")
-  return image.get("src")
+  for match in meta_regex.findall(html):
+    return match
 
 def download_player_image(player_id, image_url):
   if not os.path.exists(PLAYER_IMAGES):

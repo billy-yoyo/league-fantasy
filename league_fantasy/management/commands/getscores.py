@@ -1,6 +1,6 @@
 
 
-from ...models import PlayerTournamentScore
+from ...models import PlayerTournamentScore, GamePlayer
 from django.core.management.base import BaseCommand, CommandParser
 from datetime import datetime
 import csv
@@ -20,7 +20,8 @@ class Command(BaseCommand):
 
     rows = []
     for player in PlayerTournamentScore.objects.filter(tournament__id=tournamnet_id).all():
-      rows.append([player.player.in_game_name.lower(), player.score])
+      games = GamePlayer.objects.filter(player=player.player, game__tournament__id=tournamnet_id).count()
+      rows.append([player.player.in_game_name.lower(), player.score, games])
 
     with open(csv_file, "w", newline="") as f:
       writer = csv.writer(f)
