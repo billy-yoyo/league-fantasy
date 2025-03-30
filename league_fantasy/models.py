@@ -19,6 +19,7 @@ class Tournament(models.Model):
 class Team(models.Model):
   full_name = models.CharField(max_length=70)
   short_name = models.CharField(max_length=10)
+  overview_page = models.CharField(max_length=255, default="")
   icon_url = models.CharField(max_length=255, default="")
   background_colour = models.CharField(max_length=10, default="#ffffff")
   active = models.BooleanField(default=True)

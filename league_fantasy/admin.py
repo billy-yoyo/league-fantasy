@@ -1,6 +1,6 @@
 from django.contrib import admin
 from .models import Tournament, Season, Team, Player, Game, UserDraft, UserDraftPlayer, Leaderboard, LeaderboardMember, PlayerSynonym, PlayerTournamentScore
-from .scraper.scrape_match_history import scrape_match_list
+from .scraper.scrape_match_history import scrape_match_list, scrape_teams_and_players
 from .scraper.scrape_match import scrape_match
 from .scraper.score_calculator import update_all_player_scores_for_tournament
 from .scraper.daily_updater import daily_refresh_job_for_tournament
@@ -9,6 +9,11 @@ from .scraper.daily_updater import daily_refresh_job_for_tournament
 def update_tournament_match_list(modeladmin, request, queryset):
   for tournament in queryset:
     scrape_match_list(tournament)
+
+@admin.action(description="Update team data")
+def update_tournament_team_data(modeladmin, request, queryset):
+  for tournament in queryset:
+    scrape_teams_and_players(tournament)
 
 @admin.action(description="Recalculate scores")
 def recalculate_scores_for_tournament(modeladmin, request, queryset):
@@ -28,6 +33,7 @@ def update_game_statistics(modeladmin, request, queryset):
 class TournamentAdmin(admin.ModelAdmin):
   actions = [
     update_tournament_match_list,
+    update_tournament_team_data,
     recalculate_scores_for_tournament,
     post_game_refresh
   ]
