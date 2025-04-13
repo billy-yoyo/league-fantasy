@@ -2,7 +2,7 @@ from django.http import HttpResponse, HttpResponseRedirect, HttpResponseBadReque
 from django.shortcuts import render
 from .scraper.score_calculator import get_player_score_sources_per_game_for_tournament, get_champion_score_per_game
 from .scraper.statistics.stats import ALL_STAT_SOURCES
-from .models import Player, UserDraft, UserDraftPlayer, PlayerScorePoint, Game, GamePlayer, PlayerStat, PlayerTournamentScore, Champion
+from .models import Player, UserDraft, UserDraftPlayer, PlayerScorePoint, Game, GamePlayer, PlayerStat, PlayerTournamentScore, Champion, TournamentChampion
 from django.contrib.auth import logout
 from .graphing.group_by_time import group_data_by_day
 from .graphing.bell_curve import create_bell_curve_dataset, create_bell_curve_labels
@@ -201,12 +201,25 @@ def player_graph(request, player_id=None):
         "colspan": len(game_names) + 1
     })
 
-Champ = namedtuple("Champ", "id icon name")
+Champ = namedtuple("Champ", "id icon name score games")
 @authorized
 def champion_grid(request):
-    champs = [
-        Champ(champ["key"], champ["icon"], champ["name"]) for champ in champions
-    ]
+    tournament = get_tournament(request)
+
+    champ_scores = {}
+    for tournament_champ in TournamentChampion.objects.filter(tournament=tournament):
+        champ_scores[str(tournament_champ.champion.champion_id)] = [tournament_champ.score, tournament_champ.games]
+    
+    champs = sorted([
+        Champ(
+            champ["key"],
+            champ["icon"],
+            champ["name"],
+            *champ_scores.get(champ["key"], [0, 0])
+        ) for champ in champions
+    ], key=lambda x: x.score, reverse=True)
+
+    champs = [champ for champ in champs if champ.games > 0]
 
     return render(request, "champion_page.html", {
         "champions": champs

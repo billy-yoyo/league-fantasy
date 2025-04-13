@@ -4,16 +4,36 @@
   <input class="text-filter" id="champFilter" type="text" oninput="filterChamps()" placeholder="Champion name">
 </div>
 
-<div class="champ-grid">
-  {% for champion in champions %}
-    <a href="/champions/{{champion.id}}" title="{{champion.name}}" data-name="{{champion.name}}" class="champ-link">
-      <img src="{{champion.icon}}" class="player-icon" height="50"></img>
-      <div class="champ-name">
-        {{champion.name}}
-      </div>
-    </a>
-  {% endfor %}
-</div>
+<div class="scrollable-table">
+  <table>
+      <thead>
+          <tr>
+              <th scope="col"></th>
+              <th scope="col">Champion</th>
+              <th scope="col nowrap">Score per game</th>
+              <th scope="col nowrap">Games</th>
+          </tr>
+      </thead>
+      <tbody>
+          {% for champion in champions %}
+              <tr class="champ-row" data-name="{{ champion.name }}">
+                  <td scope="row">
+                      <div class="flex-center">
+                          <img src="{{champion.icon}}" height="30"></img>
+                      </div>
+                  </td>
+                  <td scope="row" class="name">
+                      <a href="/champions/{{ champion.id }}">
+                          {{ champion.name }}
+                      </a>
+                  </td>
+                  <td>{{ champion.score|asdecimal:1 }}</td>
+                  <td>{{ champion.games }}</td>
+              </tr>
+          {% endfor %}
+      </tbody>
+  </table>
+  </div>
 
 <script>
   const filterChamps = () => {
@@ -23,7 +43,7 @@
     }
 
     const champName = champFilterEl.value.trim().toLowerCase();
-    const champLinks = document.querySelectorAll("a.champ-link");
+    const champLinks = document.querySelectorAll("tr.champ-row");
     champLinks.forEach(champLink => {
       const name = champLink.dataset.name.toLowerCase();
       let index = 0;

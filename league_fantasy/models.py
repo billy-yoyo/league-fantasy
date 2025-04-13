@@ -134,3 +134,8 @@ class Champion(models.Model):
   def __str__(self):
     return self.champion_name
 
+class TournamentChampion(models.Model):
+  champion = models.ForeignKey(Champion, on_delete=models.CASCADE)
+  tournament = models.ForeignKey(Tournament, on_delete=models.CASCADE)
+  score = models.FloatField(default=0)
+  games = models.IntegerField(default=0)
