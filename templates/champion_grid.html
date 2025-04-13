@@ -1,0 +1,9 @@
+{% load static %}
+
+<div class="champ-grid">
+  {% for champion in champions %}
+    <a href="/champions/{{champion.id}}" title="{{champion.name}}">
+      <img src="{{champion.icon}}" class="player-icon" height="50"></img>
+    </a>
+  {% endfor %}
+</div>

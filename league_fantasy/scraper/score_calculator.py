@@ -92,6 +92,28 @@ def get_player_score_sources_per_game_for_tournament(player, tournament):
     game_scores.append((game, game_score))
   return sorted(game_scores, key=lambda x: x[0].time)
 
+def get_player_stats(game, player):
+  stats = defaultdict(int)
+  for stat in PlayerStat.objects.filter(game=game).filter(player=player):
+    stats[stat.stat_name] = stat.stat_value
+  return stats
+
+def get_player_game_score(player, game):
+  stats = get_player_stats(game, player)
+  game_player = GamePlayer.objects.filter(game=game, player=player).first()
+  position = player.position
+  if game_player:
+    position = game_player.position
+  
+  return new_calculate_score(game, position, stats, 1)
+
+def get_champion_score_per_game(tournament, champion_id):
+  player_stats = PlayerStat.objects.filter(game__tournament=tournament).filter(stat_name=StatName.champion_id).filter(stat_value=champion_id)
+  game_scores = []
+  for stat in player_stats:
+    game_score = get_player_game_score(stat.player, stat.game)
+    game_scores.append((stat.game, game_score))
+  return sorted(game_scores, key=lambda x: x[0].time)
 
 def update_player_score(tournament_player, time):
   player = tournament_player.player
@@ -102,9 +124,7 @@ def update_player_score(tournament_player, time):
   score = ScoreComputer(0)
   total_games = 0
   for game in games:
-    stats = defaultdict(int)
-    for stat in PlayerStat.objects.filter(game=game).filter(player=player):
-      stats[stat.stat_name] = stat.stat_value
+    stats = get_player_stats(game, player)
     if len(stats) == 0:
       continue
     game_player = GamePlayer.objects.filter(game=game, player=player).first()

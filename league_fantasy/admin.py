@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Tournament, Season, Team, Player, Game, UserDraft, UserDraftPlayer, Leaderboard, LeaderboardMember, PlayerSynonym, PlayerTournamentScore
+from .models import Tournament, Season, Team, Player, Game, UserDraft, UserDraftPlayer, Leaderboard, LeaderboardMember, PlayerSynonym, PlayerTournamentScore, Champion
 from .scraper.scrape_match_history import scrape_match_list, scrape_teams_and_players
 from .scraper.scrape_match import scrape_match
 from .scraper.score_calculator import update_all_player_scores_for_tournament
@@ -72,6 +72,9 @@ class LeaderboardAdmin(admin.ModelAdmin):
 class LeaderboardMemberAdmin(admin.ModelAdmin):
   list_display = ["user", "leaderboard", "is_admin"]
 
+class ChampionAdmin(admin.ModelAdmin):
+  list_display = ["champion_id", "champion_name"]
+
 admin.site.register(Tournament, TournamentAdmin)
 admin.site.register(Season, SeasonAdmin)
 
@@ -84,3 +87,4 @@ admin.site.register(UserDraft, UserDraftAdmin)
 admin.site.register(UserDraftPlayer, UserDraftPlayerAdmin)
 admin.site.register(Leaderboard, LeaderboardAdmin)
 admin.site.register(LeaderboardMember, LeaderboardMemberAdmin)
+admin.site.register(Champion, ChampionAdmin)

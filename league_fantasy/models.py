@@ -126,3 +126,11 @@ class LeaderboardMember(models.Model):
 
   def __str__(self):
     return self.user.username
+  
+class Champion(models.Model):
+  champion_id = models.IntegerField(primary_key=True)
+  champion_name = models.CharField(max_length=255)
+
+  def __str__(self):
+    return self.champion_name
+

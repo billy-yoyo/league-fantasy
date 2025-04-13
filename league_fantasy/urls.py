@@ -29,6 +29,8 @@ urlpatterns = [
     path('', views.home),
     path("players/", views.player_leaderboard),
     path("players/<int:player_id>/", views.player_graph),
+    path("champions/", views.champion_grid),
+    path("champions/<int:champion_id>/", views.champion_graph),
     path("draft/", views.draft),
     path("submit-draft/", views.submit_draft),
     path("logout/", views.logout_view),
