@@ -99,10 +99,6 @@ button.position:hover {
   background-color: #456;
 }
 
-.hidden {
-  display: none;
-}
-
 form.draft {
   width: 70%;
   display: flex;
@@ -658,11 +654,41 @@ ul {
 }
 
 .champ-grid {
-  padding: 20px;
+  padding: 20px 50px;
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
 }
 
 .champ-grid a {
   text-decoration: none;
+}
+
+.champ-link {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 5px;
+  width: 250px;
+}
+
+.champ-name {
+  font-size: 1.25rem;
+  color: #aaa;
+}
+
+.text-filter {
+  font-size: 1.5rem;
+  margin-top: 20px;
+  background-color: #012;
+  color: white;
+  border-color: #123;
+  padding: 7px 10px;
+  width: 500px;
+}
+
+.hidden {
+  display: none;
 }
 
 @media only screen and (max-width: 600px) {

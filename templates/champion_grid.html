@@ -1,9 +1,48 @@
 {% load static %}
 
+<div>
+  <input class="text-filter" id="champFilter" type="text" oninput="filterChamps()" placeholder="Champion name">
+</div>
+
 <div class="champ-grid">
   {% for champion in champions %}
-    <a href="/champions/{{champion.id}}" title="{{champion.name}}">
+    <a href="/champions/{{champion.id}}" title="{{champion.name}}" data-name="{{champion.name}}" class="champ-link">
       <img src="{{champion.icon}}" class="player-icon" height="50"></img>
+      <div class="champ-name">
+        {{champion.name}}
+      </div>
     </a>
   {% endfor %}
 </div>
+
+<script>
+  const filterChamps = () => {
+    const champFilterEl = document.getElementById("champFilter");
+    if (!champFilterEl) {
+      return;
+    }
+
+    const champName = champFilterEl.value.trim().toLowerCase();
+    const champLinks = document.querySelectorAll("a.champ-link");
+    champLinks.forEach(champLink => {
+      const name = champLink.dataset.name.toLowerCase();
+      let index = 0;
+
+      if (champName) {
+        for (let part of champName) {
+          index = name.indexOf(part, index);
+          if (index < 0) {
+            break;
+          }
+        }
+      }
+
+      if (index >= 0) {
+        champLink.classList.remove("hidden");
+      } else {
+        champLink.classList.add("hidden");
+      }
+    });
+  };
+
+</script>
