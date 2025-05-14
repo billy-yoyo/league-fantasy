@@ -5,6 +5,7 @@ from .score_computer import ScoreComputer
 from .statistics.new_score_calculator import calculate_score as new_calculate_score
 import math
 from collections import defaultdict
+import json
 
 def calculate_kda_score(position, stats):
   kda = stats.get(StatName.kda, 0)
@@ -131,9 +132,13 @@ def update_player_score(tournament_player, time):
     position = player.position
     if game_player:
       position = game_player.position
-    game_score = new_calculate_score(game, position, stats, match_multipliers.get(game.match_id, 1))
-    score.merge(game_score)
-    total_games += 1
+    print(f"calculating for game {game.team_a.short_name} vs {game.team_b.short_name}, player {player.name}")
+    try:
+      game_score = new_calculate_score(game, position, stats, match_multipliers.get(game.match_id, 1))
+      score.merge(game_score)
+      total_games += 1
+    except:
+      print(f"error calculating stats {json.dumps(stats)}")
 
   if tournament.active:
     player.score = score.score
