@@ -51,7 +51,7 @@ def player_leaderboard(request):
 
 
 GRAPH_DATA_POINTS = 20
-BUDGET = 90_000
+BUDGET = 100_000
 
 @authorized
 def draft(request):
