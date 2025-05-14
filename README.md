@@ -36,3 +36,7 @@ Alternatively - just run `start.sh`
 ## Flags
 
 Flags were sourced from https://github.com/lipis/flag-icons and copied here under the MIT license
+
+## Champions
+
+Champions were sourced from https://github.com/ngryman/lol-champions/blob/master/champions.json

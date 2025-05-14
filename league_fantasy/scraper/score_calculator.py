@@ -1,4 +1,4 @@
-from ..models import Player, Tournament, PlayerStat, Game, UserDraft, UserDraftPlayer, UserDraftScorePoint, PlayerScorePoint, GamePlayer, PlayerTournamentScore
+from ..models import Player, Tournament, Champion, PlayerStat, Game, UserDraft, UserDraftPlayer, UserDraftScorePoint, PlayerScorePoint, GamePlayer, PlayerTournamentScore, TournamentChampion
 from .statistics.stats import StatName
 from datetime import datetime
 from .score_computer import ScoreComputer
@@ -92,6 +92,28 @@ def get_player_score_sources_per_game_for_tournament(player, tournament):
     game_scores.append((game, game_score))
   return sorted(game_scores, key=lambda x: x[0].time)
 
+def get_player_stats(game, player):
+  stats = defaultdict(int)
+  for stat in PlayerStat.objects.filter(game=game).filter(player=player):
+    stats[stat.stat_name] = stat.stat_value
+  return stats
+
+def get_player_game_score(player, game):
+  stats = get_player_stats(game, player)
+  game_player = GamePlayer.objects.filter(game=game, player=player).first()
+  position = player.position
+  if game_player:
+    position = game_player.position
+  
+  return new_calculate_score(game, position, stats, 1)
+
+def get_champion_score_per_game(tournament, champion_id):
+  player_stats = PlayerStat.objects.filter(game__tournament=tournament).filter(stat_name=StatName.champion_id).filter(stat_value=champion_id)
+  game_scores = []
+  for stat in player_stats:
+    game_score = get_player_game_score(stat.player, stat.game)
+    game_scores.append((stat.game, game_score))
+  return sorted(game_scores, key=lambda x: x[0].time)
 
 def update_player_score(tournament_player, time):
   player = tournament_player.player
@@ -102,9 +124,7 @@ def update_player_score(tournament_player, time):
   score = ScoreComputer(0)
   total_games = 0
   for game in games:
-    stats = defaultdict(int)
-    for stat in PlayerStat.objects.filter(game=game).filter(player=player):
-      stats[stat.stat_name] = stat.stat_value
+    stats = get_player_stats(game, player)
     if len(stats) == 0:
       continue
     game_player = GamePlayer.objects.filter(game=game, player=player).first()
@@ -136,6 +156,25 @@ def update_user_draft(user_draft, time):
 
   UserDraftScorePoint(draft=user_draft, score=score, time=time).save()
 
+def update_champion_score(tournament, champion):
+  game_scores = get_champion_score_per_game(tournament, champion.champion_id)
+  score = sum(score.score for _, score in game_scores) / max(len(game_scores), 1)
+  games = len(game_scores)
+
+  tournament_champ = TournamentChampion.objects.filter(tournament=tournament, champion=champion).first()
+  if tournament_champ:
+    tournament_champ.score = score
+    tournament_champ.games = games
+    tournament_champ.save()
+  else:
+    TournamentChampion(
+      tournament=tournament,
+      champion=champion,
+      score=score,
+      games=games
+    ).save()
+
+
 def update_all_user_drafts(time):
   for user_draft in UserDraft.objects.all():
     update_user_draft(user_draft, time)
@@ -146,5 +185,6 @@ def update_all_player_scores_for_tournament(tournament):
     update_player_score(tournament_player, time)
   if tournament.active:
     update_all_user_drafts(time)
- 
+  for champion in Champion.objects.all():
+    update_champion_score(tournament, champion)
 

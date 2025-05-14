@@ -19,6 +19,7 @@ class Tournament(models.Model):
 class Team(models.Model):
   full_name = models.CharField(max_length=70)
   short_name = models.CharField(max_length=10)
+  overview_page = models.CharField(max_length=255, default="")
   icon_url = models.CharField(max_length=255, default="")
   background_colour = models.CharField(max_length=10, default="#ffffff")
   active = models.BooleanField(default=True)
@@ -125,3 +126,16 @@ class LeaderboardMember(models.Model):
 
   def __str__(self):
     return self.user.username
+  
+class Champion(models.Model):
+  champion_id = models.IntegerField(primary_key=True)
+  champion_name = models.CharField(max_length=255)
+
+  def __str__(self):
+    return self.champion_name
+
+class TournamentChampion(models.Model):
+  champion = models.ForeignKey(Champion, on_delete=models.CASCADE)
+  tournament = models.ForeignKey(Tournament, on_delete=models.CASCADE)
+  score = models.FloatField(default=0)
+  games = models.IntegerField(default=0)

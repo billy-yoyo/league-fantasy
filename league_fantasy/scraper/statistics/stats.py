@@ -63,7 +63,7 @@ class StatName:
   only_death_in_teamfight_win = "only_death_in_teamfight_win"
   immobilisations = "immobilisations"
   take_heavy_damage_survive = "take_heavy_damage_survive"
-
+  champion_id = "champion_id"
 
 ALL_STAT_NAMES = [key for key in StatName.__dict__ if not key.startswith("_")]
 
@@ -137,6 +137,7 @@ class Stat:
 
 STAT_MATCHERS = [
   Stat(StatName.level, "champLevel"),
+  Stat(StatName.champion_id, "championId"),
   Stat(StatName.kills, "kills"),
   Stat(StatName.deaths, "deaths"),
   Stat(StatName.assists, "assists"),

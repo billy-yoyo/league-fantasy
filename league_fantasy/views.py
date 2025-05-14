@@ -1,14 +1,15 @@
 from django.http import HttpResponse, HttpResponseRedirect, HttpResponseBadRequest, HttpResponseForbidden, HttpResponseNotFound
 from django.shortcuts import render
-from .scraper.score_calculator import get_player_score_sources_per_game_for_tournament
+from .scraper.score_calculator import get_player_score_sources_per_game_for_tournament, get_champion_score_per_game
 from .scraper.statistics.stats import ALL_STAT_SOURCES
-from .models import Player, UserDraft, UserDraftPlayer, PlayerScorePoint, Game, GamePlayer, PlayerStat, PlayerTournamentScore
+from .models import Player, UserDraft, UserDraftPlayer, PlayerScorePoint, Game, GamePlayer, PlayerStat, PlayerTournamentScore, Champion, TournamentChampion
 from django.contrib.auth import logout
 from .graphing.group_by_time import group_data_by_day
 from .graphing.bell_curve import create_bell_curve_dataset, create_bell_curve_labels
 from .helper import authorized, get_tournament
-from collections import defaultdict
+from collections import defaultdict, namedtuple
 from django.db.models import Count
+from .champion_icons import get_champion_icon_and_name, champions
 
 def logout_view(request):
     logout(request)
@@ -193,6 +194,76 @@ def player_graph(request, player_id=None):
         "player_name": f"{player.team.short_name} {player.in_game_name}",
         "player_score": player_score.score if player_score else 0,
         "graph_data": graph_data,
+        "sources": sources,
+        "scores": scores,
+        "game_names": game_names,
+        "source_totals": source_totals,
+        "colspan": len(game_names) + 1
+    })
+
+Champ = namedtuple("Champ", "id icon name score games")
+@authorized
+def champion_grid(request):
+    tournament = get_tournament(request)
+
+    champ_scores = {}
+    for tournament_champ in TournamentChampion.objects.filter(tournament=tournament):
+        champ_scores[str(tournament_champ.champion.champion_id)] = [tournament_champ.score, tournament_champ.games]
+    
+    champs = sorted([
+        Champ(
+            champ["key"],
+            champ["icon"],
+            champ["name"],
+            *champ_scores.get(champ["key"], [0, 0])
+        ) for champ in champions
+    ], key=lambda x: x.score, reverse=True)
+
+    champs = [champ for champ in champs if champ.games > 0]
+
+    return render(request, "champion_page.html", {
+        "champions": champs
+    })
+
+@authorized
+def champion_graph(request, champion_id=None):
+    tournament = get_tournament(request)
+
+    try:
+        champion = Champion.objects.get(champion_id=champion_id)
+    except:
+        champion = None
+
+    champion_icon, champion_full_name = get_champion_icon_and_name(champion_id)
+
+    if champion_full_name is None and champion is None:
+        return HttpResponseBadRequest()
+
+    game_scores = get_champion_score_per_game(tournament, champion.champion_id) if champion is not None else []
+    game_names = [
+        (game.team_a.short_name, game.team_a.id == game.winner,
+         game.team_b.short_name, game.team_b.id == game.winner, game.id) for game, _ in game_scores
+    ]
+    scores = [score for _, score in game_scores]
+
+    sources = set()
+    for score in scores:
+        sources |= set(score.score_sources.keys())
+    sources = list(sorted(sources))
+    sources = [(source, source.replace("_", " ").title()) for source in sources]
+
+    source_totals = {}
+    for source, _ in sources:
+        source_totals[source] = sum(score.get(source) for score in scores)
+
+    score = sum(score.score for score in scores)
+    score_per_game = score / max(len(game_scores), 1)
+
+    return render(request, "champion_graph_page.html", {
+        "champion_name": champion_full_name or champion.champion_name,
+        "champion_icon": champion_icon,
+        "champion_score": score,
+        "champion_score_pg": score_per_game,
         "sources": sources,
         "scores": scores,
         "game_names": game_names,

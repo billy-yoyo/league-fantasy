@@ -1,0 +1,68 @@
+{% load static %}
+
+<div>
+  <input class="text-filter" id="champFilter" type="text" oninput="filterChamps()" placeholder="Champion name">
+</div>
+
+<div class="scrollable-table">
+  <table>
+      <thead>
+          <tr>
+              <th scope="col"></th>
+              <th scope="col">Champion</th>
+              <th scope="col nowrap">Score per game</th>
+              <th scope="col nowrap">Games</th>
+          </tr>
+      </thead>
+      <tbody>
+          {% for champion in champions %}
+              <tr class="champ-row" data-name="{{ champion.name }}">
+                  <td scope="row">
+                      <div class="flex-center">
+                          <img src="{{champion.icon}}" height="30"></img>
+                      </div>
+                  </td>
+                  <td scope="row" class="name">
+                      <a href="/champions/{{ champion.id }}">
+                          {{ champion.name }}
+                      </a>
+                  </td>
+                  <td>{{ champion.score|asdecimal:1 }}</td>
+                  <td>{{ champion.games }}</td>
+              </tr>
+          {% endfor %}
+      </tbody>
+  </table>
+  </div>
+
+<script>
+  const filterChamps = () => {
+    const champFilterEl = document.getElementById("champFilter");
+    if (!champFilterEl) {
+      return;
+    }
+
+    const champName = champFilterEl.value.trim().toLowerCase();
+    const champLinks = document.querySelectorAll("tr.champ-row");
+    champLinks.forEach(champLink => {
+      const name = champLink.dataset.name.toLowerCase();
+      let index = 0;
+
+      if (champName) {
+        for (let part of champName) {
+          index = name.indexOf(part, index);
+          if (index < 0) {
+            break;
+          }
+        }
+      }
+
+      if (index >= 0) {
+        champLink.classList.remove("hidden");
+      } else {
+        champLink.classList.add("hidden");
+      }
+    });
+  };
+
+</script>

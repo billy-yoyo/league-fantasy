@@ -1,11 +1,13 @@
-from ..models import Game, Player, PlayerStat, Team, GamePlayer
+from ..models import Game, Player, PlayerStat, Team, GamePlayer, Champion
 from .statistics.stats import STAT_MATCHERS, StatName
 from .statistics.parse_timeline import scrape_match_timeline
-from collections import defaultdict
 from .esclient import esclient
-import json
 
-
+def ensure_champion_exists(champion_name, champion_id):
+  Champion.objects.get_or_create(
+    champion_name=champion_name,
+    champion_id=champion_id
+  )
 
 def parse_participant(game, data):
   # parse player 
@@ -16,6 +18,8 @@ def parse_participant(game, data):
   if not player:
     print(f"failed to find player with in game name {in_game_name}")
     return None, None, [], None
+  
+  ensure_champion_exists(data["championName"], data["championId"])
   
   player_stats = []
   for stat in STAT_MATCHERS:

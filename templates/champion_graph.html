@@ -1,0 +1,55 @@
+{% load static %}
+
+<h1 class="player-title">
+  <div class="player-images">  
+    <img src="{{champion_icon}}" class="player-icon" height="50"></img>
+  </div>
+  <div class="player-name-and-tags">
+    {{ champion_name }} ({{ champion_score_pg|asdecimal:1 }} score per game)
+  </div>
+</h1>
+
+<div class="scrollable-table">
+  <table>
+    <thead>
+      <tr>
+        <th scope="col"></th>
+        {% for game_name in game_names %}
+          <th scope="col" class="game-name-th"> 
+            <a href="/game/{{ game_name.4 }}" class="game-name-col">
+              <div {% if game_name.1 %} class="winner" {% endif %}>{{ game_name.0 }}</div>
+              <div class="vs">vs</div>
+              <div {% if game_name.3 %} class="winner" {% endif %}>{{ game_name.2 }}</div>
+            </a>
+          </th>
+        {% endfor %}
+        <th scope="col">Total</th>
+      </tr>
+    </thead>
+    {% for stat_source in sources %}
+      <tr>
+        <th class="game-name-th" scope="row">
+          <a href="/stat/{{ stat_source.0 }}" class="game-name-col">
+            {{ stat_source.1 }}
+          </a>
+        </th>
+        {% for score in scores %}
+          <td>{% if score|keyvalue:stat_source.0 is not None %} {{ score|keyvalue:stat_source.0|asdecimal:1 }} {% else %} 0 {% endif %}</td>
+        {% endfor %}
+        <td class="total"> {{ source_totals|keyvalue:stat_source.0|asdecimal:1 }} </td>
+      </tr>
+    {% endfor %}
+    <tr>
+      <th class="game-name-th" scope="row">
+        <a href="/stat/total" class="game-name-col">
+          Total
+        </a>
+      </th>
+      {% for score in scores %}
+        <td>{{ score.score|asdecimal:1 }}</td>
+      {% endfor %}
+      <td>{{ champion_score|asdecimal:1 }}</td>
+    </tr>
+  </table>
+</div>
+
