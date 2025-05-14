@@ -137,8 +137,9 @@ def update_player_score(tournament_player, time):
       game_score = new_calculate_score(game, position, stats, match_multipliers.get(game.match_id, 1))
       score.merge(game_score)
       total_games += 1
-    except:
+    except Exception as e:
       print(f"error calculating stats {json.dumps(stats)}")
+      raise e
 
   if tournament.active:
     player.score = score.score
