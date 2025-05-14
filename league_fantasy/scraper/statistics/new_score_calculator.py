@@ -6,12 +6,12 @@ def calculate_lane_performance(position, duration, stats, score):
   solo_kills = stats.get(StatName.solo_kills)
   pick_with_ally = stats.get(StatName.pick_with_ally)
 
-  solo_gd15 = stats.get(StatName.gold_diff_15)
-  duo_gd15 = stats.get(StatName.duo_gold_diff_15)
+  solo_gd15 = stats.get(StatName.gold_diff_15, 0)
+  duo_gd15 = stats.get(StatName.duo_gold_diff_15, 0)
   gd15 = duo_gd15 if position in ("bot", "support") else solo_gd15
 
-  xpd15 = stats.get(StatName.xp_diff_15)
-  cspm = stats.get(StatName.cs) / duration
+  xpd15 = stats.get(StatName.xp_diff_15, 0)
+  cspm = stats.get(StatName.cs, 0) / duration
   first_blood = stats.get(StatName.first_blood)
   takedown_all_lanes = stats.get(StatName.takedown_all_lanes_early)
   ganks15 = stats.get(StatName.ganks_15)
@@ -151,7 +151,7 @@ def calculate_jungle(stats, score):
 
 def calculate_support(stats, score):
   save_ally = stats.get(StatName.save_ally)
-  only_death_in_teamfight_win = stats.get(StatName.only_death_in_teamfight_win)
+  only_death_in_teamfight_win = stats.get(StatName.only_death_in_teamfight_win, 0)
   kp = stats.get(StatName.kill_participation)
 
   score.add(StatSource.save_ally, save_ally)
