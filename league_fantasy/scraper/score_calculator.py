@@ -132,7 +132,7 @@ def update_player_score(tournament_player, time):
     position = player.position
     if game_player:
       position = game_player.position
-    print(f"calculating for game {game.team_a.short_name} vs {game.team_b.short_name}, player {player.name}")
+    print(f"calculating for game {game.team_a.short_name} vs {game.team_b.short_name}, player {player.in_game_name}")
     try:
       game_score = new_calculate_score(game, position, stats, match_multipliers.get(game.match_id, 1))
       score.merge(game_score)
