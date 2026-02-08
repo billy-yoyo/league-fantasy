@@ -59,8 +59,14 @@ def tournament_setup_start(request):
     Step 1: Enter Fandom URL and fetch tournament information.
     """
     if request.method == "GET":
-        return render(request, 'admin/tournament_setup_start.html')
-
+        print("rendering setup")
+        try:
+            return render(request, 'admin/tournament_setup_start.html')
+        except Exception as e:
+            print(f"Error: {e}")
+            raise e
+            
+            
     # POST - Process the URL
     fandom_url = request.POST.get('fandom_url', '').strip()
     if not fandom_url:
