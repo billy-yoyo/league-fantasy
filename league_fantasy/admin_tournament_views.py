@@ -10,6 +10,7 @@ from django.db import transaction
 from .models import Season, Tournament, Team, Player, PlayerTournamentScore, Game
 from .scraper.esclient import esclient
 import json
+import traceback
 
 
 def parse_fandom_url(url):
@@ -64,6 +65,7 @@ def tournament_setup_start(request):
             return render(request, 'admin/tournament_setup_start.html')
         except Exception as e:
             print(f"Error: {e}")
+            traceback.print_exc(e)
             raise e
             
             
