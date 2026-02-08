@@ -65,7 +65,7 @@ def tournament_setup_start(request):
             return render(request, 'admin/tournament_setup_start.html')
         except Exception as e:
             print(f"Error: {e}")
-            traceback.print_exc(e)
+            traceback.print_exc()
             raise e
             
             
