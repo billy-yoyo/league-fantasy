@@ -1,0 +1,446 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="stylesheet" href="{% static 'style-v3.css' %}">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+  <link rel="shortcut icon" type="image/svg" href="{% static 'favicon.svg' %}">
+  <title>Tournament Setup - Step 3</title>
+  <style>
+    body {
+      background: #1a1a1a;
+      color: #fff;
+      font-family: 'Roboto', sans-serif;
+      padding: 20px;
+    }
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 40px;
+      background: #2a2a2a;
+      border-radius: 8px;
+    }
+    h1 {
+      margin-bottom: 10px;
+    }
+    .subtitle {
+      color: #aaa;
+      margin-bottom: 30px;
+    }
+    .tournament-info {
+      background: #1a1a1a;
+      padding: 15px;
+      border-radius: 4px;
+      margin-bottom: 30px;
+    }
+    .cost-params {
+      background: #1a1a1a;
+      padding: 20px;
+      border-radius: 8px;
+      margin-bottom: 30px;
+    }
+    .params-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 15px;
+      margin-bottom: 20px;
+    }
+    .param-group {
+      display: flex;
+      flex-direction: column;
+    }
+    .tournament-select {
+      margin-bottom: 20px;
+    }
+    label {
+      display: block;
+      margin-bottom: 5px;
+      font-weight: 700;
+      font-size: 14px;
+    }
+    input[type="number"], select {
+      width: 100%;
+      padding: 8px 12px;
+      background: #2a2a2a;
+      border: 1px solid #444;
+      border-radius: 4px;
+      color: #fff;
+      font-size: 14px;
+      box-sizing: border-box;
+    }
+    select {
+      height: 150px;
+    }
+    input[type="number"]:focus, select:focus {
+      outline: none;
+      border-color: #4a9eff;
+    }
+    .btn {
+      padding: 12px 24px;
+      background: #4a9eff;
+      color: #fff;
+      border: none;
+      border-radius: 4px;
+      font-size: 16px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .btn:hover {
+      background: #3a8eef;
+    }
+    .btn-secondary {
+      background: #555;
+    }
+    .btn-secondary:hover {
+      background: #666;
+    }
+    .btn-success {
+      background: #66bb6a;
+    }
+    .btn-success:hover {
+      background: #56ab5a;
+    }
+    .button-group {
+      display: flex;
+      gap: 12px;
+    }
+    .costs-table {
+      background: #1a1a1a;
+      border-radius: 8px;
+      overflow: hidden;
+      margin-bottom: 30px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    th {
+      background: #333;
+      padding: 12px;
+      text-align: left;
+      font-weight: 700;
+      border-bottom: 2px solid #444;
+    }
+    td {
+      padding: 10px 12px;
+      border-bottom: 1px solid #333;
+    }
+    tr:hover {
+      background: #2a2a2a;
+    }
+    .cost-input {
+      width: 120px;
+      padding: 6px 10px;
+      background: #2a2a2a;
+      border: 1px solid #444;
+      border-radius: 4px;
+      color: #fff;
+      font-size: 14px;
+    }
+    .cost-input:focus {
+      outline: none;
+      border-color: #4a9eff;
+    }
+    .back-link {
+      display: inline-block;
+      color: #4a9eff;
+      text-decoration: none;
+      margin-bottom: 20px;
+    }
+    .back-link:hover {
+      text-decoration: underline;
+    }
+    .loading {
+      display: none;
+      color: #4a9eff;
+      margin-left: 10px;
+    }
+    .loading.active {
+      display: inline;
+    }
+    .position-badge {
+      display: inline-block;
+      padding: 2px 8px;
+      background: #444;
+      border-radius: 4px;
+      font-size: 12px;
+      text-transform: uppercase;
+    }
+    .help-text {
+      color: #888;
+      font-size: 13px;
+      margin-top: 5px;
+    }
+    .formula {
+      background: #333;
+      padding: 15px;
+      border-radius: 4px;
+      margin-top: 15px;
+      font-family: 'Courier New', monospace;
+      font-size: 13px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <a href="{% url 'admin_tournament_setup_teams' %}" class="back-link">&larr; Back</a>
+
+    <h1>Create New Tournament</h1>
+    <p class="subtitle">Step 3 of 3: Generate and Adjust Player Costs</p>
+
+    <div class="tournament-info">
+      <strong>Season:</strong> {{ season_name }}<br>
+      <strong>Tournament:</strong> {{ tournament_name }}
+    </div>
+
+    <div class="cost-params">
+      <h2 style="margin-top: 0;">Cost Generation Parameters</h2>
+
+      <div class="tournament-select">
+        <label for="previous_tournaments">Previous Tournaments (select multiple)</label>
+        <select id="previous_tournaments" name="previous_tournaments" multiple>
+          {% for tournament in tournaments %}
+          <option value="{{ tournament.id }}">{{ tournament.season.name }} - {{ tournament.name }}</option>
+          {% endfor %}
+        </select>
+        <div class="help-text">Hold Ctrl/Cmd to select multiple tournaments</div>
+      </div>
+
+      <div class="params-grid">
+        <div class="param-group">
+          <label for="cps">Cost per Score (CpS)</label>
+          <input type="number" id="cps" name="cps" value="{{ default_cps }}" step="0.01" />
+          <div class="help-text">Default: 1500</div>
+        </div>
+
+        <div class="param-group">
+          <label for="bc">Base Cost (Bc)</label>
+          <input type="number" id="bc" name="bc" value="{{ default_bc }}" step="1" />
+          <div class="help-text">Default: 30000</div>
+        </div>
+
+        <div class="param-group">
+          <label for="factor">Factor (F)</label>
+          <input type="number" id="factor" name="factor" value="{{ default_factor }}" step="0.01" />
+          <div class="help-text">Default: 2</div>
+        </div>
+
+        <div class="param-group">
+          <label for="power">Power (P)</label>
+          <input type="number" id="power" name="power" value="{{ default_power }}" step="0.01" />
+          <div class="help-text">Default: 0.8</div>
+        </div>
+
+        <div class="param-group">
+          <label for="rookie_cost">Rookie Cost</label>
+          <input type="number" id="rookie_cost" name="rookie_cost" value="{{ default_rookie_cost }}" step="1" />
+          <div class="help-text">Default: 10000</div>
+        </div>
+      </div>
+
+      <div class="formula">
+        Formula: (max(min((S * T * CpS) / Bc, F), 0) ** P) * Bc<br>
+        Where S = avg score/game, T = tournaments played
+      </div>
+
+      <div style="margin-top: 20px;">
+        <button id="calculate-btn" class="btn" onclick="calculateCosts()">
+          Calculate Costs
+          <span class="loading" id="loading-spinner">⟳</span>
+        </button>
+      </div>
+    </div>
+
+    <div class="costs-table" id="costs-table" style="display: none;">
+      <table>
+        <thead id="costs-thead">
+          <!-- Populated by JavaScript with dynamic tournament columns -->
+        </thead>
+        <tbody id="costs-tbody">
+          <!-- Populated by JavaScript -->
+        </tbody>
+      </table>
+    </div>
+
+    <form id="submit-form" method="POST" action="{% url 'admin_tournament_setup_submit' %}" style="display: none;">
+      {% csrf_token %}
+      <input type="hidden" name="costs_data" id="costs_data">
+
+      <div class="button-group">
+        <button type="submit" class="btn btn-success">Create Tournament</button>
+        <a href="{% url 'admin_tournament_setup_teams' %}" class="btn btn-secondary">Back</a>
+      </div>
+    </form>
+  </div>
+
+  <script>
+    const teams = {{ teams|safe }};
+    let calculatedCosts = {};
+    let playerDetails = {};
+    let selectedTournamentIds = [];
+    let tournamentNames = {};  // Map tournament ID to name
+
+    // Build tournament names map
+    {% for tournament in tournaments %}
+    tournamentNames[{{ tournament.id }}] = "{{ tournament.name|escapejs }}";
+    {% endfor %}
+
+    async function calculateCosts() {
+      const loadingSpinner = document.getElementById('loading-spinner');
+      const calculateBtn = document.getElementById('calculate-btn');
+
+      loadingSpinner.classList.add('active');
+      calculateBtn.disabled = true;
+
+      const formData = new FormData();
+      formData.append('csrfmiddlewaretoken', '{{ csrf_token }}');
+      formData.append('action', 'calculate');
+
+      // Get selected tournaments
+      selectedTournamentIds = Array.from(
+        document.getElementById('previous_tournaments').selectedOptions
+      ).map(option => option.value);
+
+      selectedTournamentIds.forEach(id => {
+        formData.append('previous_tournaments', id);
+      });
+
+      // Get parameters
+      formData.append('cps', document.getElementById('cps').value);
+      formData.append('bc', document.getElementById('bc').value);
+      formData.append('factor', document.getElementById('factor').value);
+      formData.append('power', document.getElementById('power').value);
+      formData.append('rookie_cost', document.getElementById('rookie_cost').value);
+
+      try {
+        const response = await fetch('{% url "admin_tournament_setup_costs" %}', {
+          method: 'POST',
+          body: formData
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+          calculatedCosts = data.costs;
+          playerDetails = data.player_details || {};
+          displayCosts();
+        } else {
+          alert('Error calculating costs: ' + data.error);
+        }
+      } catch (error) {
+        alert('Error: ' + error);
+      } finally {
+        loadingSpinner.classList.remove('active');
+        calculateBtn.disabled = false;
+      }
+    }
+
+    function displayCosts() {
+      const thead = document.getElementById('costs-thead');
+      const tbody = document.getElementById('costs-tbody');
+
+      // Build table header with tournament columns
+      let headerHTML = '<tr><th>Player</th><th>Team</th><th>Position</th>';
+
+      // Add column for each selected tournament
+      selectedTournamentIds.forEach(tournamentId => {
+        const tournamentName = tournamentNames[tournamentId] || `Tournament ${tournamentId}`;
+        headerHTML += `<th>${tournamentName}<br><small>Score/Game (Games)</small></th>`;
+      });
+
+      headerHTML += '<th>Avg Score/Game</th><th>Tournaments</th><th>Calculated Cost</th><th>Adjusted Cost</th></tr>';
+      thead.innerHTML = headerHTML;
+
+      // Clear tbody
+      tbody.innerHTML = '';
+
+      teams.forEach(team => {
+        Object.entries(team.roster).forEach(([position, playerData]) => {
+          if (!playerData) return;
+
+          const playerName = typeof playerData === 'string' ? playerData : playerData.name;
+          const cost = calculatedCosts[playerName] || 10000;
+          const details = playerDetails[playerName] || {
+            tournaments: {},
+            avg_score_per_game: 0,
+            tournament_count: 0,
+            is_rookie: true
+          };
+
+          const row = document.createElement('tr');
+
+          // Basic info
+          let rowHTML = `
+            <td>${playerName}</td>
+            <td>${team.name}</td>
+            <td><span class="position-badge">${position}</span></td>
+          `;
+
+          // Add tournament-specific data
+          selectedTournamentIds.forEach(tournamentId => {
+            const tournamentData = details.tournaments[tournamentId];
+            if (tournamentData) {
+              rowHTML += `<td>${tournamentData.score_per_game.toFixed(1)} (${tournamentData.games})</td>`;
+            } else {
+              rowHTML += '<td style="color: #666;">-</td>';
+            }
+          });
+
+          // Add aggregate data and costs
+          if (details.is_rookie) {
+            rowHTML += `
+              <td style="color: #ffa726;">Rookie</td>
+              <td>0</td>
+            `;
+          } else {
+            rowHTML += `
+              <td>${details.avg_score_per_game.toFixed(2)}</td>
+              <td>${details.tournament_count}</td>
+            `;
+          }
+
+          rowHTML += `
+            <td>${cost.toLocaleString()}</td>
+            <td>
+              <input
+                type="number"
+                class="cost-input"
+                data-player="${playerName}"
+                value="${cost}"
+                step="100"
+              />
+            </td>
+          `;
+
+          row.innerHTML = rowHTML;
+          tbody.appendChild(row);
+        });
+      });
+
+      document.getElementById('costs-table').style.display = 'block';
+      document.getElementById('submit-form').style.display = 'block';
+    }
+
+    // Handle form submission
+    document.getElementById('submit-form').addEventListener('submit', function(e) {
+      e.preventDefault();
+
+      const costs = {};
+      document.querySelectorAll('.cost-input').forEach(input => {
+        const playerName = input.dataset.player;
+        costs[playerName] = parseInt(input.value);
+      });
+
+      document.getElementById('costs_data').value = JSON.stringify(costs);
+      this.submit();
+    });
+  </script>
+</body>
+</html>

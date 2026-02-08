@@ -1,0 +1,351 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="stylesheet" href="{% static 'style-v3.css' %}">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+  <link rel="shortcut icon" type="image/svg" href="{% static 'favicon.svg' %}">
+  <title>Tournament Setup - Step 2</title>
+  <style>
+    body {
+      background: #1a1a1a;
+      color: #fff;
+      font-family: 'Roboto', sans-serif;
+      padding: 20px;
+    }
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 40px;
+      background: #2a2a2a;
+      border-radius: 8px;
+    }
+    h1 {
+      margin-bottom: 10px;
+    }
+    .subtitle {
+      color: #aaa;
+      margin-bottom: 30px;
+    }
+    .tournament-info {
+      background: #1a1a1a;
+      padding: 15px;
+      border-radius: 4px;
+      margin-bottom: 30px;
+    }
+    .teams-grid {
+      display: grid;
+      gap: 20px;
+      margin-bottom: 30px;
+    }
+    .team-card {
+      background: #1a1a1a;
+      padding: 20px;
+      border-radius: 8px;
+      border: 1px solid #444;
+    }
+    .team-header {
+      font-size: 20px;
+      font-weight: 700;
+      margin-bottom: 15px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid #444;
+    }
+    .roster-grid {
+      display: grid;
+      gap: 12px;
+    }
+    .roster-row {
+      display: grid;
+      grid-template-columns: 80px 1fr 120px;
+      gap: 12px;
+      align-items: center;
+    }
+    .position-label {
+      font-weight: 700;
+      color: #4a9eff;
+      text-transform: uppercase;
+      font-size: 12px;
+    }
+    input[type="text"], select {
+      width: 100%;
+      padding: 8px 12px;
+      background: #2a2a2a;
+      border: 1px solid #444;
+      border-radius: 4px;
+      color: #fff;
+      font-size: 14px;
+      box-sizing: border-box;
+    }
+    input[type="text"]:focus, select:focus {
+      outline: none;
+      border-color: #4a9eff;
+    }
+    .country-input {
+      width: 100%;
+    }
+    .btn {
+      padding: 12px 24px;
+      background: #4a9eff;
+      color: #fff;
+      border: none;
+      border-radius: 4px;
+      font-size: 16px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .btn:hover {
+      background: #3a8eef;
+    }
+    .btn-secondary {
+      background: #555;
+    }
+    .btn-secondary:hover {
+      background: #666;
+    }
+    .button-group {
+      display: flex;
+      gap: 12px;
+    }
+    .back-link {
+      display: inline-block;
+      color: #4a9eff;
+      text-decoration: none;
+      margin-bottom: 20px;
+    }
+    .back-link:hover {
+      text-decoration: underline;
+    }
+    .existing-player {
+      color: #66bb6a;
+    }
+    .new-player {
+      color: #ffa726;
+    }
+    .player-mode-toggle {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+    .mode-btn {
+      padding: 4px 8px;
+      background: #444;
+      border: none;
+      color: #fff;
+      border-radius: 4px;
+      font-size: 12px;
+      cursor: pointer;
+    }
+    .mode-btn.active {
+      background: #4a9eff;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <a href="{% url 'admin_tournament_setup_start' %}" class="back-link">&larr; Back</a>
+
+    <h1>Create New Tournament</h1>
+    <p class="subtitle">Step 2 of 3: Configure Team Rosters</p>
+
+    <div class="tournament-info">
+      <strong>Season:</strong> {{ season_name }}<br>
+      <strong>Tournament:</strong> {{ tournament_name }}
+    </div>
+
+    <form id="roster-form" method="POST">
+      {% csrf_token %}
+      <input type="hidden" name="teams_data" id="teams_data">
+
+      <div class="teams-grid">
+        {% for team in teams %}
+        <div class="team-card" data-team="{{ forloop.counter0 }}">
+          <div class="team-header">{{ team.name }}</div>
+          <div class="roster-grid">
+            <div class="roster-row">
+              <div class="position-label">top</div>
+              <div>
+                <input
+                  type="text"
+                  class="player-name"
+                  data-team="{{ forloop.counter0 }}"
+                  data-position="top"
+                  value="{{ team.roster.top }}"
+                  placeholder="Enter player name"
+                />
+              </div>
+              <div>
+                <input
+                  type="text"
+                  class="player-country country-input"
+                  data-team="{{ forloop.counter0 }}"
+                  data-position="top"
+                  placeholder="Country"
+                />
+              </div>
+            </div>
+            <div class="roster-row">
+              <div class="position-label">jungle</div>
+              <div>
+                <input
+                  type="text"
+                  class="player-name"
+                  data-team="{{ forloop.counter0 }}"
+                  data-position="jungle"
+                  value="{{ team.roster.jungle }}"
+                  placeholder="Enter player name"
+                />
+              </div>
+              <div>
+                <input
+                  type="text"
+                  class="player-country country-input"
+                  data-team="{{ forloop.counter0 }}"
+                  data-position="jungle"
+                  placeholder="Country"
+                />
+              </div>
+            </div>
+            <div class="roster-row">
+              <div class="position-label">mid</div>
+              <div>
+                <input
+                  type="text"
+                  class="player-name"
+                  data-team="{{ forloop.counter0 }}"
+                  data-position="mid"
+                  value="{{ team.roster.mid }}"
+                  placeholder="Enter player name"
+                />
+              </div>
+              <div>
+                <input
+                  type="text"
+                  class="player-country country-input"
+                  data-team="{{ forloop.counter0 }}"
+                  data-position="mid"
+                  placeholder="Country"
+                />
+              </div>
+            </div>
+            <div class="roster-row">
+              <div class="position-label">bot</div>
+              <div>
+                <input
+                  type="text"
+                  class="player-name"
+                  data-team="{{ forloop.counter0 }}"
+                  data-position="bot"
+                  value="{{ team.roster.bot }}"
+                  placeholder="Enter player name"
+                />
+              </div>
+              <div>
+                <input
+                  type="text"
+                  class="player-country country-input"
+                  data-team="{{ forloop.counter0 }}"
+                  data-position="bot"
+                  placeholder="Country"
+                />
+              </div>
+            </div>
+            <div class="roster-row">
+              <div class="position-label">support</div>
+              <div>
+                <input
+                  type="text"
+                  class="player-name"
+                  data-team="{{ forloop.counter0 }}"
+                  data-position="support"
+                  value="{{ team.roster.support }}"
+                  placeholder="Enter player name"
+                />
+              </div>
+              <div>
+                <input
+                  type="text"
+                  class="player-country country-input"
+                  data-team="{{ forloop.counter0 }}"
+                  data-position="support"
+                  placeholder="Country"
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+
+      <div class="button-group">
+        <button type="submit" class="btn">Continue to Cost Generation</button>
+        <a href="{% url 'admin_tournament_setup_start' %}" class="btn btn-secondary">Cancel</a>
+      </div>
+    </form>
+  </div>
+
+  <script>
+    // Store teams data from Django
+    const teamsData = {{ teams_json|safe }};
+    const existingPlayers = {{ existing_players|safe }};
+
+    // Prepare teams data for submission
+    document.getElementById('roster-form').addEventListener('submit', function(e) {
+      e.preventDefault();
+
+      const teams = [];
+      const teamCards = document.querySelectorAll('.team-card');
+
+      teamCards.forEach((card, teamIndex) => {
+        const teamName = card.querySelector('.team-header').textContent;
+        const roster = {};
+
+        const positions = ['top', 'jungle', 'mid', 'bot', 'support'];
+        positions.forEach(position => {
+          const nameInput = card.querySelector(`input.player-name[data-team="${teamIndex}"][data-position="${position}"]`);
+          const countryInput = card.querySelector(`input.player-country[data-team="${teamIndex}"][data-position="${position}"]`);
+
+          if (nameInput && nameInput.value.trim()) {
+            roster[position] = {
+              name: nameInput.value.trim(),
+              country: countryInput ? countryInput.value.trim() : ''
+            };
+          }
+        });
+
+        teams.push({
+          name: teamName,
+          roster: roster,
+          overview_page: teamsData[teamIndex] ? teamsData[teamIndex].overview_page : '',
+          region: teamsData[teamIndex] ? teamsData[teamIndex].region : ''
+        });
+      });
+
+      document.getElementById('teams_data').value = JSON.stringify(teams);
+      this.submit();
+    });
+
+    // Pre-fill country codes for existing players
+    document.querySelectorAll('input.player-name').forEach(input => {
+      const playerName = input.value.trim();
+      if (playerName && existingPlayers[playerName]) {
+        const teamIndex = input.dataset.team;
+        const position = input.dataset.position;
+        const countryInput = document.querySelector(
+          `input.player-country[data-team="${teamIndex}"][data-position="${position}"]`
+        );
+        if (countryInput && existingPlayers[playerName].country) {
+          countryInput.value = existingPlayers[playerName].country;
+        }
+      }
+    });
+  </script>
+</body>
+</html>
