@@ -22,9 +22,14 @@ from django.conf import settings
 
 import league_fantasy.views as views
 import league_fantasy.leaderboard_views as leaderboard_views
+import league_fantasy.admin_tournament_views as admin_tournament_views
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    path('admin-tools/tournament-setup/', admin_tournament_views.tournament_setup_start, name='admin_tournament_setup_start'),
+    path('admin-tools/tournament-setup/teams/', admin_tournament_views.tournament_setup_teams, name='admin_tournament_setup_teams'),
+    path('admin-tools/tournament-setup/costs/', admin_tournament_views.tournament_setup_costs, name='admin_tournament_setup_costs'),
+    path('admin-tools/tournament-setup/submit/', admin_tournament_views.tournament_setup_submit, name='admin_tournament_setup_submit'),
     path("accounts/", include("django.contrib.auth.urls")),
     path('', views.home),
     path("players/", views.player_leaderboard),
